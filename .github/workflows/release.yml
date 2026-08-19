@@ -101,7 +101,7 @@ jobs:
           yarn prepare:release --tag "$RELEASE_TAG"
           --commit "${{ steps.contract.outputs.release_commit }}"
       - name: Preserve the verified release payload
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: taichios-${{ env.RELEASE_TAG }}
           path: artifacts/live/
