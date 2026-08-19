@@ -17,7 +17,7 @@ The smoke gate verifies immutable inputs and licenses, official Cordis isolation
 The smoke first proves that Bubblewrap can create the offline namespace. On locked-down CI hosts that deny unprivileged user namespaces, passwordless `sudo` creates only the network namespace through `unshare`, which drops back to the runner UID/GID before the runtime starts. Failures include the captured pseudo-terminal transcript.
 Smoke 会先验证 Bubblewrap 确实能够创建断网命名空间。若 CI 宿主禁止非特权 user namespace，则由免密 `sudo` 仅通过 `unshare` 创建网络命名空间，并在运行时启动前降回 runner 的 UID/GID。失败信息会附带捕获的伪终端记录。
 
-The timeout is accepted only after the full smoke interval; both GNU timeout's status `124` and a propagated `SIGINT` from the pseudo-terminal represent the expected controlled shutdown.
-只有经过完整 smoke 时长后才接受超时结果；GNU timeout 的状态 `124` 与伪终端向父进程传播的 `SIGINT` 都表示预期的受控关闭。
+The timeout is accepted only after the full smoke interval; GNU timeout's status `124`, a propagated `SIGINT`, or the configured two-second `SIGKILL` fallback represent the expected controlled shutdown at their respective deadlines.
+只有经过完整 smoke 时长后才接受超时结果；GNU timeout 的状态 `124`、传播的 `SIGINT`，或在额外两秒期限触发的 `SIGKILL` 回退，才表示各自截止时间上的预期受控关闭。
 
 `compat:cordis` 逐文件对比历史快照与固定的 Cordis 上游提交，只允许 `upstream.json` 中列出的迁移补丁，并校验包身份和 MIT 许可证摘要。

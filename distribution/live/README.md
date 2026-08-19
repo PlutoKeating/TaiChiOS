@@ -12,7 +12,7 @@ corepack yarn test:live
 corepack yarn test:install
 ```
 
-构建需要 root 权限和访问固定 Debian 快照。产物复制到 `artifacts/live/`：ISO、ISO SHA-256、二进制包清单和 chroot 包清单。工作缓存留在本目录且不进入 Git。`corepack yarn clean:live` 只清除此工程的 live-build 状态及上述已知产物。
+构建需要 root 权限、访问固定 Debian 快照，以及用于验证快照 Release 签名的 `debian-archive-keyring`。产物复制到 `artifacts/live/`：ISO、ISO SHA-256、二进制包清单和 chroot 包清单。工作缓存留在本目录且不进入 Git。`corepack yarn clean:live` 只清除此工程的 live-build 状态及上述已知产物。
 
 构建前必须已有 `corepack yarn install:runtime` 的固定依赖图。`auto/stage-runtime` 校验并缓存固定 Node 归档，再把 Node、Harness 与 dsh-TUI 装入镜像；chroot hook 会在产出 ISO 前再次运行真实 `dsh --version`。构建入口把 `SOURCE_DATE_EPOCH` 固定为 Debian 快照时刻，并通过 live-build 的 rootfs exclude 规则排除可再生但不稳定的 APT 二进制缓存，避免 ISO 内容随构建时刻漂移。
 

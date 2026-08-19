@@ -65,7 +65,7 @@ jobs:
           -o Acquire::https::Timeout=20 -o Acquire::ForceIPv4=true update &&
           sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20
           -o Acquire::https::Timeout=20 -o Acquire::ForceIPv4=true install --yes
-          curl debootstrap squashfs-tools xorriso isolinux syslinux-common
+          curl debootstrap debian-archive-keyring squashfs-tools xorriso isolinux syslinux-common
           grub-pc-bin grub-efi-amd64-bin mtools dosfstools qemu-system-x86 ovmf netcat-openbsd
       - name: Install pinned live-build
         run: yarn install:live-build

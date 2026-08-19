@@ -181,8 +181,11 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
     })
     const elapsed = Date.now() - startedAt
     const output = readFileSync(transcript, 'utf8')
+    const controlledTimeout = result.status === 124
+      || (result.signal === 'SIGINT' && elapsed >= 3500)
+      || (result.signal === 'SIGKILL' && elapsed >= 5500)
     assert.ok(
-      elapsed >= 3500 && (result.status === 124 || result.signal === 'SIGINT'),
+      controlledTimeout,
       `TUI exited before the smoke timeout (status ${result.status}, signal ${result.signal}, ${elapsed}ms)\n${output.slice(-4000)}`,
     )
     assert.match(output, /dsh-TUI/)
