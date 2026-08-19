@@ -46,6 +46,7 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 │   ├── security/
 │   └── compatibility/
 ├── tools/                  # 构建、发布、检查和开发者工具
+├── website/                # 独立安装、测试和发布的官方 React Router 网站
 ├── docs/                   # 产品、架构、ADR、安全与发布文档
 └── vendor/                 # 必须固定源码时的显式上游边界
 ```

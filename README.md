@@ -6,7 +6,7 @@
 
 **A bootable, agent-native Debian derivative built around a composable userspace microkernel.**
 
-[简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
+[官方网站](https://taichios.arr2018.dpdns.org) · [简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
 
 ![Status](https://img.shields.io/badge/status-0.1_MVP_candidate-6c5ce7)
 ![Platform](https://img.shields.io/badge/platform-x86__64-0984e3)
@@ -87,6 +87,7 @@ schemas/        插件、权限、Provider 与更新协议
 tests/          启动、安装、恢复、安全和兼容性验收
 docs/           宪法、ADR、架构、安全、发布和开发文档
 vendor/         显式固定且保留许可证的上游源码/补丁
+website/        官方网站、响应式设计规范与 Cloudflare Pages 配置
 ```
 
 本仓库前身 Cordis fork 的源码已按原提交身份归入 `vendor/cordis`，不属于 TaiChiOS 自有能力包，也不进入官方 Harness 运行时；详见[仓库布局](./docs/architecture/repository-layout.md)。

@@ -6,4 +6,5 @@
 /packages/policy/ @PlutoKeating
 /packages/secret-service/ @PlutoKeating
 /packages/update-manager/ @PlutoKeating
-
+/website/ @PlutoKeating
+/.github/workflows/website.yml @PlutoKeating

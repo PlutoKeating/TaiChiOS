@@ -16,13 +16,15 @@ pnpm-lock.yaml
 !/website/package-lock.json
 !/distribution/runtime/pnpm-lock.yaml
 
+/website/build/
+/website/.react-router/
+
 todo.md
 coverage/
 node_modules/
 npm-debug.log
 yarn-debug.log
 yarn-error.log
-package-lock.json
 tsconfig.temp.json
 tsconfig.tsbuildinfo
 report.*.json
