@@ -17,6 +17,8 @@ jobs:
           node-version: 24.16.0
       - name: Enable Corepack
         run: corepack enable
+      - name: Install network-isolation helper
+        run: sudo apt-get update && sudo apt-get install --yes bubblewrap
       - name: Install pinned Harness runtime
         run: yarn install:runtime
       - name: Boot compatibility smoke

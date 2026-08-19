@@ -35,7 +35,8 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 │   │   └── config/
 │   ├── installer/          # Calamares/安装流程配置
 │   ├── boot/               # GRUB、启动菜单、恢复入口
-│   └── debian/             # TaiChiOS 自有 Debian 包与仓库元数据
+│   ├── debian/             # TaiChiOS 自有 Debian 包与仓库元数据
+│   └── runtime/            # 固定的 Cordis/DSH/界面运行时装配与工厂 Profile
 ├── schemas/                # 跨包稳定协议
 ├── tests/                  # 从外部观察系统的验收套件
 │   ├── boot/
@@ -58,8 +59,8 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 3. 可上游化的改动提交给 Cordis，TaiChiOS 只保留短期 patch queue。
 
 迁移完成前，新增 TaiChiOS 包只使用上表中的明确名称，不把新业务混入现有 Cordis 包。
+`distribution/runtime` 中的私有 package manifest 仅是发行版装配边界，不是新的公开 TaiChiOS 能力包；它必须通过 lockfile 固定上游制品，不能承载 TaiChiOS 业务逻辑。
 
 ## 为什么 Debian 不进入 vendor
 
 Debian 不是一个适合整体 vendor 的单仓库产品。TaiChiOS 通过 Debian Archive/Snapshot、APT 源、源码包和 `live-build` 配置记录来源；自身改动形成独立 Debian 包。这样可以继续接收安全更新、生成对应源代码清单，并避免维护无法同步的 Debian 巨型 fork。
-

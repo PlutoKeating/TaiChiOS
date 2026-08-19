@@ -4,13 +4,29 @@
   "architecture": "amd64",
   "node": {
     "version": "24.16.0",
+    "license": "MIT",
+    "licenseFile": "LICENSE",
     "archive": "node-v24.16.0-linux-x64.tar.xz",
     "sha256": "d804845d34eddc21dc1092b519d643ef40b1f58ec5dec5c22b1f4bd8fabde6c9",
     "source": "https://nodejs.org/dist/v24.16.0/"
   },
   "packageManager": {
     "package": "pnpm",
-    "version": "11.7.0"
+    "version": "11.7.0",
+    "license": "MIT",
+    "licenseFile": "node_modules/pnpm/LICENSE"
+  },
+  "runtimeDependencies": {
+    "react": {
+      "version": "18.3.1",
+      "license": "MIT",
+      "licenseFile": "node_modules/react/LICENSE"
+    },
+    "react-dom": {
+      "version": "18.3.1",
+      "license": "MIT",
+      "licenseFile": "node_modules/react-dom/LICENSE"
+    }
   },
   "components": {
     "cordis": {

@@ -31,9 +31,13 @@ const readInstalledPackage = name => {
   }
 }
 
+const shellQuote = value => `'${value.replaceAll("'", "'\\''")}'`
+
 check('runtime inputs are immutable', () => {
   assert.equal(runtimeLock.schemaVersion, 1)
   assert.match(runtimeLock.node.sha256, /^[a-f0-9]{64}$/)
+  assert.equal(runtimeLock.node.license, 'MIT')
+  assert.equal(runtimeLock.node.licenseFile, 'LICENSE')
   assert.equal(readFileSync(resolve(workspace, '.node-version'), 'utf8').trim(), runtimeLock.node.version)
   for (const component of Object.values(runtimeLock.components)) {
     assert.match(component.commit, /^[a-f0-9]{40}$/)
@@ -41,6 +45,10 @@ check('runtime inputs are immutable', () => {
     assert.equal(runtimePackage.dependencies[component.package], component.version)
   }
   assert.equal(runtimePackage.packageManager, `${runtimeLock.packageManager.package}@${runtimeLock.packageManager.version}`)
+  assert.equal(runtimePackage.dependencies.pnpm, runtimeLock.packageManager.version)
+  for (const [name, dependency] of Object.entries(runtimeLock.runtimeDependencies)) {
+    assert.equal(runtimePackage.dependencies[name], dependency.version)
+  }
   for (const version of Object.values(runtimePackage.dependencies)) {
     assert.doesNotMatch(version, /^[~^*]|\b(?:latest|next)\b/)
   }
@@ -52,6 +60,16 @@ check('installed packages match the compatibility lock', () => {
     const { manifest } = readInstalledPackage(component.package)
     assert.equal(manifest.version, component.version, component.package)
     assert.equal(manifest.license, component.license, component.package)
+  }
+  const directDependencies = {
+    pnpm: runtimeLock.packageManager,
+    ...runtimeLock.runtimeDependencies,
+  }
+  for (const [name, expected] of Object.entries(directDependencies)) {
+    const { manifest } = readInstalledPackage(name)
+    assert.equal(manifest.version, expected.version, name)
+    assert.equal(manifest.license, expected.license, name)
+    assert.ok(existsSync(resolve(dirname(runtimePackagePath), expected.licenseFile)), `${name} license`)
   }
 })
 
@@ -75,8 +93,7 @@ check('dsh-TUI publishes a DSH bundle patch for official Cordis', () => {
 })
 
 check('official dsh CLI starts on this Node runtime', () => {
-  const nodeMajor = Number(process.versions.node.split('.')[0])
-  assert.ok(nodeMajor >= 24, `Node ${process.versions.node} is below the pinned runtime line`)
+  assert.equal(process.versions.node, runtimeLock.node.version, 'Node runtime does not match the compatibility lock')
   const dshPackage = readInstalledPackage(runtimeLock.components.harness.package)
   const bin = resolve(dshPackage.directory, dshPackage.manifest.bin.dsh)
   const version = execFileSync(process.execPath, [bin, '--version'], { encoding: 'utf8' }).trim()
@@ -114,6 +131,8 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
   const home = mkdtempSync(resolve(tmpdir(), 'taichios-dsh-tui-'))
   const transcript = resolve(home, 'typescript')
   try {
+    const bubblewrap = spawnSync('bwrap', ['--version'], { encoding: 'utf8' })
+    assert.equal(bubblewrap.status, 0, 'bwrap is required to prove offline startup')
     execFileSync(process.execPath, ['tools/prepare-dsh-profile.mjs', '--home', home], {
       cwd: workspace,
     })
@@ -123,7 +142,7 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
       '4',
       'script',
       '-qfec',
-      `${process.execPath} ${bin} --profile dsh-tui`,
+      `bwrap --unshare-net --bind / / ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`,
       transcript,
     ], {
       env: {
