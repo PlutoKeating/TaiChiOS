@@ -159,6 +159,7 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
     execFileSync(process.execPath, ['tools/prepare-dsh-profile.mjs', '--home', home], {
       cwd: workspace,
     })
+    const startedAt = Date.now()
     const result = spawnSync('timeout', [
       '--signal=INT',
       '--kill-after=2',
@@ -178,11 +179,11 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
       },
       stdio: 'ignore',
     })
+    const elapsed = Date.now() - startedAt
     const output = readFileSync(transcript, 'utf8')
-    assert.equal(
-      result.status,
-      124,
-      `TUI exited before the smoke timeout (status ${result.status})\n${output.slice(-4000)}`,
+    assert.ok(
+      elapsed >= 3500 && (result.status === 124 || result.signal === 'SIGINT'),
+      `TUI exited before the smoke timeout (status ${result.status}, signal ${result.signal}, ${elapsed}ms)\n${output.slice(-4000)}`,
     )
     assert.match(output, /dsh-TUI/)
     assert.doesNotMatch(output, /plugin tree failed|ERR_MODULE_NOT_FOUND/)
