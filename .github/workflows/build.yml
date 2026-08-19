@@ -4,9 +4,14 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   runtime-compatibility:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Check out
@@ -19,7 +24,10 @@ jobs:
           node-version: 24.16.0
       - name: Enable Corepack
         run: corepack enable
+      - name: Install workspace dependencies
+        run: yarn install --immutable
       - name: Install network-isolation helper
+        timeout-minutes: 10
         run: sudo apt-get update && sudo apt-get install --yes bubblewrap
       - name: Install pinned Harness runtime
         run: yarn install:runtime
@@ -30,6 +38,7 @@ jobs:
 
   live-image:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - name: Check out
@@ -40,9 +49,12 @@ jobs:
           node-version: 24.16.0
       - name: Enable Corepack
         run: corepack enable
+      - name: Install workspace dependencies
+        run: yarn install --immutable
       - name: Verify Debian Live definition
         run: yarn compat:live
       - name: Install image and VM tooling
+        timeout-minutes: 15
         run: >-
           sudo apt-get update && sudo apt-get install --yes
           curl debootstrap squashfs-tools xorriso isolinux syslinux-common
