@@ -1,0 +1,17 @@
+TaiChiOS
+Copyright 2026 TaiChiOS contributors
+
+TaiChiOS-originated work is licensed under the Apache License 2.0 unless a
+file or component states otherwise.
+
+This repository currently contains source inherited from the Cordis project,
+Copyright (c) 2021-present Shigma, licensed under the MIT License. Its license
+is preserved at vendor/licenses/cordis-MIT.txt. The inherited source remains
+under that license while the repository is migrated into explicit upstream
+boundaries.
+
+DeepSeek Harness, dsh-TUI, Debian, Linux, and community plugins are independent
+upstream projects. Their names identify compatibility and provenance and do
+not imply endorsement of TaiChiOS. Distributed builds must include the license
+and attribution material required by the exact upstream versions they contain.
+

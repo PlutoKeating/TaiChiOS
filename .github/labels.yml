@@ -1,0 +1,32 @@
+# Declarative label vocabulary for future synchronization tooling.
+- name: "type: bug"
+  color: "d73a4a"
+  description: Reproducible incorrect behavior
+- name: "type: proposal"
+  color: "a2eeef"
+  description: Product or architecture proposal
+- name: "type: security"
+  color: "b60205"
+  description: Security-impacting work with no confidential detail
+- name: "type: documentation"
+  color: "0075ca"
+  description: Documentation-only work
+- name: "area: distribution"
+  color: "a81d33"
+  description: Debian, Live media, installer or boot
+- name: "area: kernel"
+  color: "6c5ce7"
+  description: Cordis composition-kernel integration
+- name: "area: agent"
+  color: "5319e7"
+  description: Harness, Agent runtime or goal execution
+- name: "area: ecosystem"
+  color: "0e8a16"
+  description: Plugins, Store or upstream compatibility
+- name: "state: needs-triage"
+  color: "ededed"
+  description: Awaiting initial classification
+- name: "state: blocked"
+  color: "000000"
+  description: Cannot progress until a named condition changes
+

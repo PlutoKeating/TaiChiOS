@@ -1,14 +1,15 @@
 {
-  "name": "@root/cordis",
+  "name": "@taichios/workspace",
   "private": true,
   "type": "module",
   "version": "0.0.0",
+  "description": "TaiChiOS — a bootable, agent-native Debian derivative built around Cordis and DeepSeek Harness",
   "packageManager": "yarn@4.14.1",
   "workspaces": [
     "external/*",
     "packages/*"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --cache",
     "yakumo": "node --expose-internals --import tsx --import @cordisjs/unyaml node_modules/yakumo/lib/cli.js",

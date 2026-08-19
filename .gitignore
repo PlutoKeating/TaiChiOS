@@ -26,6 +26,18 @@ tsconfig.temp.json
 tsconfig.tsbuildinfo
 report.*.json
 
+# TaiChiOS distribution artifacts
+/artifacts/
+/distribution/live/.build/
+/distribution/live/binary/
+/distribution/live/cache/
+/distribution/live/chroot/
+/distribution/live/local/
+/distribution/live/tmp/
+*.hybrid.iso
+*.img
+*.qcow2
+
 .claude
 .eslintcache
 .DS_Store

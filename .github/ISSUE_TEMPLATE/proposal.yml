@@ -1,0 +1,29 @@
+name: Design or feature proposal
+description: Propose a capability or architecture change
+title: "proposal: "
+labels: ["type: proposal", "state: needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user or system problem without prescribing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Boundaries and failure cases
+      description: Include identity, permission, recovery and upstream compatibility concerns.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Acceptance path
+      description: How could the system demonstrate that this works?
+
