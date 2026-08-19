@@ -29,6 +29,7 @@ Test intermediate widths, not only these reference sizes. Layouts must respond c
 - Every user-facing string must ship in both Simplified Chinese and English. The global one-click language switch must preserve the current route, persist the choice, update document language metadata, and must not create overflow when labels grow.
 - Typography must tolerate 200% zoom without clipped controls, hidden content, or loss of function.
 - Images and decorative graphics must declare stable dimensions or aspect ratios to avoid layout shift.
+- In the home hero, the TaiChi mark owns the visual column without overlaid architecture cards; the six architecture layers form a separate responsive grid below the copy/mark row.
 - Orientation changes must not require a reload and must preserve navigation state.
 
 ## Accessibility and motion

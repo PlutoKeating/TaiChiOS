@@ -23,8 +23,8 @@ export default function Home() {
   return (
     <>
       <section className="relative overflow-hidden border-b border-white/8">
-        <div className="site-container grid min-h-[calc(100dvh-var(--header-height))] items-center gap-12 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-20">
-          <div className="relative z-10">
+        <div className="site-container hero-layout">
+          <div className="hero-copy relative z-10">
             <div className="flex flex-wrap items-center gap-3">
               <span className="status-pill"><span className="status-dot" />{copy.status}</span>
               <span className="font-mono text-xs tracking-wider text-slate-500">{copy.platform}</span>
@@ -51,9 +51,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-2xl lg:mx-0">
-            <SystemMap />
-          </div>
+          <SystemMap />
         </div>
       </section>
 
