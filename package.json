@@ -21,6 +21,7 @@
     "build:live": "sudo distribution/live/auto/config && sudo distribution/live/auto/build",
     "clean:live": "sudo distribution/live/auto/clean",
     "test:live": "tools/test-live-boot.sh all",
+    "test:install": "tools/test-installed-system.sh bios && tools/test-installed-system.sh uefi",
     "yakumo": "node --expose-internals --import tsx --import @cordisjs/unyaml node_modules/yakumo/lib/cli.js",
     "build": "yarn yakumo esbuild && yarn yakumo tsc core loader && yarn yakumo tsc",
     "test": "vitest run --config vitest.config.ts",

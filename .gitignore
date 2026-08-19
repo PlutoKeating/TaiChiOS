@@ -51,6 +51,7 @@ report.*.json
 /distribution/live/config/hooks/live/0010-disable-kexec-tools.hook.chroot
 /distribution/live/config/hooks/live/0050-disable-sysvinit-tmpfs.hook.chroot
 /distribution/live/config/package-lists/live.list.chroot
+/distribution/live/config/includes.chroot/opt/taichios/
 /distribution/runtime/node_modules/
 *.hybrid.iso
 *.img

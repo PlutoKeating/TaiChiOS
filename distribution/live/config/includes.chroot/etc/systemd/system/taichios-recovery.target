@@ -1,0 +1,6 @@
+[Unit]
+Description=TaiChiOS independent recovery environment
+Requires=basic.target local-fs.target
+Wants=serial-getty@ttyS0.service taichios-recovery-marker.service
+After=basic.target local-fs.target
+AllowIsolate=yes

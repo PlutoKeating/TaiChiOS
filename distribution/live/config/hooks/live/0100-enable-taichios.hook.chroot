@@ -4,3 +4,4 @@ set -eu
 rm -f /etc/systemd/system/multi-user.target.wants/taichios-boot-ready.service
 ln -s ../taichios-boot-ready.service /etc/systemd/system/multi-user.target.wants/taichios-boot-ready.service
 systemctl enable serial-getty@ttyS0.service
+systemctl enable taichios-auto-install.service

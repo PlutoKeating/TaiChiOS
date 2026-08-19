@@ -1,0 +1,9 @@
+#!/bin/sh
+
+export DSH_HOME=${DSH_HOME:-"$HOME/.dsh"}
+if test -t 0 && test -x /usr/local/bin/dsh-tui; then
+  /usr/local/bin/dsh-tui "$@"
+  STATUS=$?
+  printf '\nTaiChiOS: dsh-TUI exited with status %s; falling back to plain shell.\n' "$STATUS" >&2
+fi
+exec /bin/bash -l

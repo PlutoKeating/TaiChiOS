@@ -12,3 +12,10 @@ util-linux
 iproute2
 less
 nano
+parted
+dosfstools
+e2fsprogs
+rsync
+squashfs-tools
+grub-pc-bin
+grub-efi-amd64-bin

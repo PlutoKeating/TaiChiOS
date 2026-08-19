@@ -9,11 +9,16 @@
 ```sh
 corepack yarn build:live
 corepack yarn test:live
+corepack yarn test:install
 ```
 
 构建需要 root 权限和访问固定 Debian 快照。产物复制到 `artifacts/live/`：ISO、ISO SHA-256、二进制包清单和 chroot 包清单。工作缓存留在本目录且不进入 Git。`corepack yarn clean:live` 只清除此工程的 live-build 状态及上述已知产物。
 
-`tools/test-live-boot.sh` 分别以 SeaBIOS 和 OVMF 启动 ISO。只有两种模式都从 guest 串口输出验收标记，才可称为“可启动”。这不是安装器验收，也不代表真实硬件固件兼容。
+构建前必须已有 `corepack yarn install:runtime` 的固定依赖图。`auto/stage-runtime` 校验并缓存固定 Node 归档，再把 Node、Harness 与 dsh-TUI 装入镜像；chroot hook 会在产出 ISO 前再次运行真实 `dsh --version`。构建入口把 `SOURCE_DATE_EPOCH` 固定为 Debian 快照时刻，并通过 live-build 的 rootfs exclude 规则排除可再生但不稳定的 APT 二进制缓存，避免 ISO 内容随构建时刻漂移。
+
+这里的 Yarn 命令只是仓库级构建入口：Debian 包由 `apt` 安装，DSH 插件能力保留 pnpm 兼容，根 Yarn 工作区和开发依赖不会进入 ISO。
+
+`tools/test-live-boot.sh` 分别以 SeaBIOS 和 OVMF 启动 ISO。`tools/test-installed-system.sh` 还会向空盘安装、移除 ISO、从磁盘启动，再进入独立 Recovery target。所有 QEMU 都不配置网卡。
 
 发布版本还必须先执行 `sudo distribution/live/auto/config --source true --apt-source-archives true`，再运行构建并归档源码 ISO；日常启动测试关闭源码索引与源码镜像以控制时长和体积。
 

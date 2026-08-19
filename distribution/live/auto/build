@@ -7,8 +7,10 @@ REPO_DIR=$(CDPATH= cd -- "$LIVE_DIR/../.." && pwd)
 ARTIFACT_DIR="$REPO_DIR/artifacts/live"
 IMAGE_NAME=taichios-0.1-amd64.hybrid.iso
 IMAGE_BASE=${IMAGE_NAME%.hybrid.iso}
+export SOURCE_DATE_EPOCH=1787097600
 
 cd "$LIVE_DIR"
+"$SCRIPT_DIR/stage-runtime"
 lb build noauto "$@"
 
 test -f "$IMAGE_NAME"

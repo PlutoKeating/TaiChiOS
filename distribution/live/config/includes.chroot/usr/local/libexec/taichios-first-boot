@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+test "$(stat -c %U /home/taichi/.dsh)" = taichi
+test "$(stat -c %U /home/creator/.dsh)" = creator
+test "$(readlink /home/taichi/.dsh/profiles/dsh-tui/node_modules/@deepseek-harness-tui/dsh-tui)" = /opt/taichios/runtime/node_modules/@deepseek-harness-tui/dsh-tui
+test "$(readlink /home/creator/.dsh/profiles/dsh-tui/node_modules/@deepseek-harness-tui/dsh-tui)" = /opt/taichios/runtime/node_modules/@deepseek-harness-tui/dsh-tui
+test -f /run/taichios/harness/taichi.ready
+test -f /run/taichios/harness/creator.ready
+systemctl is-active --quiet taichios-mock-provider.service
+install -d -m 0755 /run/taichios
+printf '%s\n' installed > /run/taichios/installed-ready
+printf '%s\n' TAICHIOS_INSTALLED_READY > /dev/ttyS0

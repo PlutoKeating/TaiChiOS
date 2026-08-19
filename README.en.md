@@ -15,7 +15,8 @@ TaiChiOS is an AI-native operating-system project for people, teams, and autonom
 The project is model-neutral, multi-user by design, safe by default, explicit about user sovereignty, and committed to dry-runnable and reversible system change. Its first target is an installable x86_64 Debian Live system with dsh-TUI as the replaceable default shell.
 
 > [!IMPORTANT]
-> TaiChiOS is in its foundation phase. No installable image has been released yet. The repository is establishing its constitution, architecture, trust boundaries, release model, and complete workspace scaffold before implementation proceeds in verified spiral increments.
+> TaiChiOS now has a reproducible 0.1 MVP candidate that passes QEMU BIOS/UEFI live boot, installation, disk-first-boot, and recovery checks. No stable image has been released, and the factory credentials are for development acceptance only.
+
+Package management follows ecosystem boundaries: `apt` owns Debian system packages, pnpm remains the native DSH profile/plugin manager, and Yarn 4 is limited to the Cordis-derived source workspace, Yakumo builds, and repository tests. Yarn is not a Debian system package manager, and the root workspace is not copied into the system image.
 
 Start with the [project constitution](./docs/constitution.md), [architecture overview](./docs/architecture/overview.md), and [roadmap](./docs/roadmap.md). The canonical product and architecture documents are currently written in Chinese; stable documents will gain English counterparts as they mature.
-

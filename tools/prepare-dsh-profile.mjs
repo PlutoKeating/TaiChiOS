@@ -9,10 +9,11 @@ const workspace = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export function prepareDshProfile({
   home,
   runtime = resolve(workspace, 'distribution/runtime'),
+  template = resolve(runtime, 'profiles/dsh-tui'),
 } = {}) {
   if (!home) throw new Error('prepare-dsh-profile: home is required')
 
-  const source = resolve(workspace, 'distribution/runtime/profiles/dsh-tui')
+  const source = template
   const profile = resolve(home, 'profiles/dsh-tui')
   const packageSource = resolve(runtime, 'node_modules/@deepseek-harness-tui/dsh-tui')
   const packageLink = resolve(profile, 'node_modules/@deepseek-harness-tui/dsh-tui')

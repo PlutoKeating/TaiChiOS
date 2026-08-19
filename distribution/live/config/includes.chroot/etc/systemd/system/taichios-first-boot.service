@@ -1,0 +1,13 @@
+[Unit]
+Description=Validate the installed TaiChiOS deployment
+After=local-fs.target taichios-harness@taichi.service taichios-harness@creator.service
+Wants=taichios-harness@taichi.service taichios-harness@creator.service
+ConditionPathExists=/var/lib/taichios/deployments/current
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/taichios-first-boot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

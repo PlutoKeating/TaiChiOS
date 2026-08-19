@@ -1,6 +1,8 @@
 # TaiChiOS Harness 运行时
 
-本目录是 TaiChiOS 0.1 隔离且可复现的用户态运行时装配边界。它使用 pnpm，因为官方 DSH Profile 管理器委托 pnpm 安装插件，而 dsh-TUI 发布包包含 Yarn 无法作为普通工作区依赖解析的 bundled `workspace:*` 包。这里的私有 package manifest 不是公开能力包，也不得承载 TaiChiOS 业务逻辑。
+本目录是 TaiChiOS 0.1 隔离且可复现的用户态运行时装配边界。它沿用 pnpm，因为官方 DSH Profile 管理器把插件安装委托给 pnpm，dsh-TUI 的发布结构也按该生态验证。这里的私有 package manifest 不是公开能力包，也不得承载 TaiChiOS 业务逻辑。
+
+根目录的 Yarn 4 只是 Cordis/Yakumo 源码工作区的任务入口；`yarn install:runtime` 会切换到本目录并调用固定的 pnpm。镜像复制本目录的 lockfile-backed 运行时，不复制根 Yarn 工作区。Debian 系统包始终由 `apt` 管理。
 
 ## 安装与验收
 
@@ -29,7 +31,7 @@ Smoke 需要 Bubblewrap（`bwrap`），真实 TUI 会在没有网络接口的命
 - 已有用户 Profile 永不被初始化工具覆盖；版本迁移必须生成 Change Set，并在替换系统运行时链接前保存旧的 runtime 目录与 lockfile 作为 Rollback Point。
 - 若新运行时 smoke 失败，镜像构建立即失败。已安装系统应将链接切回上一版本运行时；若 TUI 单独损坏，删除/禁用 `dsh-tui` Profile 后回退到纯 TTY。
 - 当前仓库内 `cordis@4.0.0-rc.8` 是非运行时历史快照，不能作为失败时的隐式 fallback。
-- 独立 Recovery Environment 与事务 Change Set 尚未实现；因此此候选只可进入 `next`，不能晋升为完整 MVP。
+- 独立 Recovery target 与最小文件型事务 Change Set 已进入 0.1 镜像；更完整的软件包升级快照、跨版本迁移与长期回滚窗口仍属于后续版本，因此该候选只进入 `next`。
 
 ## 更新流程
 
@@ -42,4 +44,4 @@ Smoke 需要 Bubblewrap（`bwrap`），真实 TUI 会在没有网络接口的命
 
 ## English summary
 
-This is the private, pinned Cordis/DSH/dsh-TUI assembly boundary for TaiChiOS 0.1. Exact artifacts, allowed install scripts, licenses, migration, and rollback rules are recorded above. `yarn compat:runtime` boots the real TUI without network or Provider credentials. Existing user profiles are preserved; failed upgrades must return their system-runtime link to the previous lockfile-backed runtime, while a broken TUI falls back to plain TTY.
+This is the private, pinned Cordis/DSH/dsh-TUI assembly boundary for TaiChiOS 0.1. Debian packages use apt, DSH profiles and plugins use pnpm, and root Yarn commands only orchestrate the Cordis-derived source workspace. Exact artifacts, allowed install scripts, licenses, migration, and rollback rules are recorded above. `yarn compat:runtime` boots the real TUI without network or Provider credentials. Existing user profiles are preserved; failed upgrades must return their system-runtime link to the previous lockfile-backed runtime, while a broken TUI falls back to plain TTY.

@@ -5,6 +5,7 @@ SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 LIVE_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 SNAPSHOT_URL=https://snapshot.debian.org/archive/debian/20260819T000000Z/
 EXPECTED_LIVE_BUILD_VERSION=1:20250505+deb13u1
+export SOURCE_DATE_EPOCH=1787097600
 
 ACTUAL_LIVE_BUILD_VERSION=$(dpkg-query -W -f='${Version}' live-build 2>/dev/null || true)
 if test "$ACTUAL_LIVE_BUILD_VERSION" != "$EXPECTED_LIVE_BUILD_VERSION"; then

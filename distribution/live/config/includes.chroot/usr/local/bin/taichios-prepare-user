@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+ACCOUNT=${1:?usage: taichios-prepare-user ACCOUNT}
+USER_HOME=$(getent passwd "$ACCOUNT" | cut -d: -f6)
+test -n "$USER_HOME"
+install -d -m 0700 -o "$ACCOUNT" -g "$ACCOUNT" "$USER_HOME/.dsh"
+runuser -u "$ACCOUNT" -- env DSH_HOME="$USER_HOME/.dsh" \
+  /opt/taichios/node/bin/node /opt/taichios/tools/prepare-dsh-profile.mjs \
+  --home "$USER_HOME/.dsh" --runtime /opt/taichios/runtime
+chown -R "$ACCOUNT:$ACCOUNT" "$USER_HOME/.dsh"

@@ -1,0 +1,14 @@
+[Unit]
+Description=TaiChiOS unattended fixture installer
+ConditionKernelCommandLine=taichios.install
+After=live-config.service
+Conflicts=getty@tty1.service serial-getty@ttyS0.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/taichios-auto-install
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

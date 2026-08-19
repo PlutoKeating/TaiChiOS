@@ -8,7 +8,7 @@
 
 [简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
 
-![Status](https://img.shields.io/badge/status-foundation-6c5ce7)
+![Status](https://img.shields.io/badge/status-0.1_MVP_candidate-6c5ce7)
 ![Platform](https://img.shields.io/badge/platform-x86__64-0984e3)
 ![Base](https://img.shields.io/badge/base-Debian-A81D33?logo=debian&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-2d3436)
@@ -22,7 +22,9 @@ TaiChiOS 是一个面向个人、团队与自治 Agent 的 AI 原生操作系统
 它不是一个把聊天窗口贴到 Linux 上的发行版。TaiChiOS 希望让系统本身成为一个可以理解目标、组合能力、持续工作、安装新能力并从失败中恢复的运行环境。
 
 > [!IMPORTANT]
-> TaiChiOS 正处于创始脚手架阶段，尚未发布可安装镜像。当前仓库首先固定项目宪法、信任边界、发行版结构和验证路径，再以螺旋模型逐层实现可启动系统。
+> TaiChiOS 已有可复现构建并通过 QEMU BIOS/UEFI 启动、安装、硬盘首启与 Recovery 验收的 0.1 MVP 候选，但尚未发布稳定镜像。当前默认账号只用于开发验收，不适合真实设备或生产环境。
+
+包管理职责按生态分层：Debian 系统软件由 `apt` 管理；DeepSeek Harness 的 Profile 与插件沿用 DSH 原生的 pnpm；Yarn 4 仅驱动继承自 Cordis 上游的源码工作区、Yakumo 构建和仓库测试。Yarn 不是 Debian 系统包管理器，根工作区及其依赖不会被复制进系统镜像。
 
 ## 核心主张
 
@@ -57,7 +59,7 @@ Cordis 的 Context、Service、Fiber 和 Effect 负责能力组合与可逆生�
 
 ## 首个可验证目标
 
-TaiChiOS `0.1` 将交付一个 x86_64 Live 系统：它可以从 USB/虚拟机启动，运行图形化安装器，将系统安装到磁盘并配置引导，然后进入预装 [dsh-TUI](https://github.com/ccch1mneyyy/dsh-TUI) 的 TaiChi Shell。用户可以移除 TUI、选择纯字符/headless 环境，或安装可选 WebView 与其他界面插件。
+TaiChiOS `0.1` MVP 候选已经实现一个 x86_64 Debian Live 系统：它可以在虚拟机中启动，运行可审计的文本整盘安装器，将系统安装到磁盘并配置 BIOS/UEFI GRUB，然后进入预装 [dsh-TUI](https://github.com/ccch1mneyyy/dsh-TUI) 的 TaiChi Shell。TUI 失败时会回退到纯字符 Shell；图形安装器和 WebView 不在该候选范围内。
 
 首轮验收不以截图为准，而以以下闭环为准：
 
@@ -79,7 +81,7 @@ boot live media
 apps/           系统入口、安装器、Shell 与监督进程
 bundles/        可分发的 TaiChiOS/DSH 插件组合
 profiles/       base、desktop、headless、recovery 等启动组合
-packages/       TaiChiOS 系统能力与当前 Cordis 上游快照
+packages/       TaiChiOS 自有系统能力
 distribution/   Debian Live、安装器、引导与 Debian 包构建
 schemas/        插件、权限、Provider 与更新协议
 tests/          启动、安装、恢复、安全和兼容性验收

@@ -1,12 +1,12 @@
 # Compatibility matrix
 
-The `next` line has a verified userspace runtime candidate. This does not yet make `next` a bootable TaiChiOS release; Debian image, installer, first-boot, and recovery acceptance remain open.
+The `next` line is a bootable MVP candidate, not a stable release. Its pinned Debian image, installer, first boot, Harness composition, and independent recovery target pass automated QEMU acceptance under BIOS and UEFI.
 
-`next` 已有通过验收的用户态运行时候选，但它还不是可启动的 TaiChiOS 发行版；Debian 镜像、安装器、首启与恢复验收仍未完成。
+`next` 已是可启动的 MVP 候选，而不是稳定发行版。固定 Debian 镜像、安装器、首启、Harness 组合及独立恢复目标均已通过 BIOS 与 UEFI 的自动 QEMU 验收。
 
 | TaiChiOS line | Debian snapshot | Node.js | Cordis | DeepSeek Harness | dsh-TUI | Status |
 |---|---|---|---|---|---|---|
-| `next` | TBD | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | Runtime smoke verified |
+| `next` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | Boot/install/recovery verified |
 | `staging` | — | — | — | — | — | Branch initialized; no candidate |
 | `main` | — | — | — | — | — | Branch initialized; no TaiChiOS release |
 

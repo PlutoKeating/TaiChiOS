@@ -46,13 +46,17 @@ jobs:
         run: >-
           sudo apt-get update && sudo apt-get install --yes
           curl debootstrap squashfs-tools xorriso isolinux syslinux-common
-          grub-pc-bin grub-efi-amd64-bin mtools dosfstools qemu-system-x86 ovmf
+          grub-pc-bin grub-efi-amd64-bin mtools dosfstools qemu-system-x86 ovmf netcat-openbsd
       - name: Install pinned live-build
         run: yarn install:live-build
+      - name: Install pinned Harness runtime
+        run: yarn install:runtime
       - name: Build hybrid image
         run: yarn build:live
       - name: Boot without networking under BIOS and UEFI
         run: yarn test:live
+      - name: Install and boot from disk under BIOS and UEFI
+        run: yarn test:install
 
   lint:
     runs-on: ubuntu-latest

@@ -1,0 +1,71 @@
+#!/bin/sh
+set -eu
+
+STATE_DIR=/var/lib/taichios/changes
+ACTION=${1:-}
+shift || true
+
+case "$ACTION" in
+  apply)
+    CHANGE_ID=
+    SOURCE=
+    TARGET=
+    MODE=
+    ACTOR=root
+    while test "$#" -gt 0; do
+      case "$1" in
+        --id) CHANGE_ID=${2:?missing id}; shift 2 ;;
+        --source) SOURCE=${2:?missing source}; shift 2 ;;
+        --target) TARGET=${2:?missing target}; shift 2 ;;
+        --dry-run) MODE=dry-run; shift ;;
+        --non-interactive) shift ;;
+        --yes) MODE=apply; shift ;;
+        --yolo) MODE=yolo; shift ;;
+        --as) ACTOR=${2:?missing principal}; shift 2 ;;
+        *) echo "unknown option: $1" >&2; exit 2 ;;
+      esac
+    done
+    test -n "$CHANGE_ID" && test -n "$SOURCE" && test -n "$TARGET" && test -n "$MODE" || exit 2
+    case "$CHANGE_ID" in *[!A-Za-z0-9._-]*|'') echo "invalid change id" >&2; exit 2;; esac
+    case "$TARGET" in /etc/taichios/*|/opt/taichios/*) ;; *) echo "target is outside managed roots" >&2; exit 2;; esac
+    test -f "$SOURCE"
+    test ! -d "$TARGET" || { echo "managed target must be a file" >&2; exit 2; }
+    SOURCE_SHA256=$(sha256sum "$SOURCE" | cut -d' ' -f1)
+    printf 'change=%s\nsource=%s\nsourceSha256=%s\ntarget=%s\nmode=%s\nactor=%s\n' "$CHANGE_ID" "$SOURCE" "$SOURCE_SHA256" "$TARGET" "$MODE" "$ACTOR"
+    test "$MODE" != dry-run || exit 0
+    CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
+    test ! -e "$CHANGE_DIR" || { echo "change already exists: $CHANGE_ID" >&2; exit 1; }
+    install -d -m 0750 "$CHANGE_DIR" "$(dirname "$TARGET")"
+    if test -e "$TARGET"; then cp -a "$TARGET" "$CHANGE_DIR/before"; else : > "$CHANGE_DIR/created"; fi
+    printf '%s\n' "$TARGET" > "$CHANGE_DIR/target"
+    printf 'mode=%s\nactor=%s\nsourceSha256=%s\n' "$MODE" "$ACTOR" "$SOURCE_SHA256" > "$CHANGE_DIR/audit"
+    STAGED_TARGET="$(dirname "$TARGET")/.taichios-$CHANGE_ID.staged"
+    test ! -e "$STAGED_TARGET"
+    cp -a "$SOURCE" "$STAGED_TARGET"
+    mv -f "$STAGED_TARGET" "$TARGET"
+    printf '%s\n' "$CHANGE_ID" > "$STATE_DIR/last"
+    ;;
+  rollback)
+    CHANGE_ID=${1:-}
+    if test "$CHANGE_ID" = --last; then
+      test -f "$STATE_DIR/last" || exit 0
+      CHANGE_ID=$(cat "$STATE_DIR/last")
+    fi
+    test -n "$CHANGE_ID" || { echo "usage: taichios-change rollback ID|--last" >&2; exit 2; }
+    CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
+    TARGET=$(cat "$CHANGE_DIR/target")
+    if test -e "$CHANGE_DIR/before"; then
+      STAGED_TARGET="$(dirname "$TARGET")/.taichios-$CHANGE_ID.rollback"
+      test ! -e "$STAGED_TARGET"
+      cp -a "$CHANGE_DIR/before" "$STAGED_TARGET"
+      mv -f "$STAGED_TARGET" "$TARGET"
+    else
+      rm -f "$TARGET"
+    fi
+    printf '%s\n' rolled-back > "$CHANGE_DIR/state"
+    ;;
+  *)
+    echo "usage: taichios-change apply ... | rollback ID|--last" >&2
+    exit 2
+    ;;
+esac

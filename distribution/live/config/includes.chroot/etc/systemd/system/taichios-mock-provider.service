@@ -1,0 +1,15 @@
+[Unit]
+Description=TaiChiOS offline mock model provider
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/taichios/node/bin/node /usr/local/libexec/taichios-mock-provider.mjs
+Restart=on-failure
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

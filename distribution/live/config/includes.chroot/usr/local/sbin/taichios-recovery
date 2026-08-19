@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+
+case "${1:-}" in
+  disable-profile)
+    ACCOUNT=${2:?missing account}
+    PROFILE=${3:?missing profile}
+    case "$PROFILE" in *[!A-Za-z0-9._-]*|'') echo "invalid profile" >&2; exit 2;; esac
+    USER_HOME=$(getent passwd "$ACCOUNT" | cut -d: -f6)
+    test -d "$USER_HOME/.dsh/profiles/$PROFILE"
+    mv "$USER_HOME/.dsh/profiles/$PROFILE" "$USER_HOME/.dsh/profiles/$PROFILE.disabled"
+    ;;
+  rollback-last)
+    exec /usr/local/sbin/taichios-change rollback --last
+    ;;
+  *)
+    echo "usage: taichios-recovery disable-profile ACCOUNT PROFILE | rollback-last" >&2
+    exit 2
+    ;;
+esac
