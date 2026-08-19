@@ -125,5 +125,7 @@ jobs:
         run: corepack enable
       - name: Install
         run: yarn --no-immutable
+      - name: Build workspace dependencies
+        run: yarn build
       - name: Unit Test
         run: yarn test:json

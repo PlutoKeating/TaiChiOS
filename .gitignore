@@ -11,9 +11,9 @@ dist
 !.yarn/sdks
 !.yarn/versions
 
-yarn.lock
 package-lock.json
 pnpm-lock.yaml
+!/website/package-lock.json
 !/distribution/runtime/pnpm-lock.yaml
 
 todo.md
