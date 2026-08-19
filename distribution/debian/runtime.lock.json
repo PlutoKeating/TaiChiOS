@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "releaseLine": "0.1",
+  "architecture": "amd64",
+  "node": {
+    "version": "24.16.0",
+    "archive": "node-v24.16.0-linux-x64.tar.xz",
+    "sha256": "d804845d34eddc21dc1092b519d643ef40b1f58ec5dec5c22b1f4bd8fabde6c9",
+    "source": "https://nodejs.org/dist/v24.16.0/"
+  },
+  "packageManager": {
+    "package": "pnpm",
+    "version": "11.7.0"
+  },
+  "components": {
+    "cordis": {
+      "package": "@deepseek-ai/cordis",
+      "version": "4.0.1",
+      "license": "MIT",
+      "upstream": "https://github.com/deepseek-ai/deepseek-harness",
+      "commit": "99f6f02fecdb7dff40c3fbc9470f5907c29f74ca",
+      "distIntegrity": "sha512-YBdskTU2Po1kru3GgcUWUbkTsPMA9LkSQDAY8rBkFJeajdgcQad3QPJZE26JyK99Xb6HaASvoXg2DSUTeN/0Nw=="
+    },
+    "harness": {
+      "package": "@deepseek-ai/dsh",
+      "version": "0.1.0-rc.7",
+      "license": "MIT",
+      "upstream": "https://github.com/deepseek-ai/deepseek-harness",
+      "tag": "dsh-v0.1.0-rc.7",
+      "commit": "99f6f02fecdb7dff40c3fbc9470f5907c29f74ca",
+      "distIntegrity": "sha512-ZceDCJ8FAywih+USW/OMk9jEhunlvJBGEz4kqrhau23hPzbciOazZrywH0nBRsaalSeAJ1JGBmjtw4OSjToStw=="
+    },
+    "shell": {
+      "package": "@deepseek-harness-tui/dsh-tui",
+      "version": "0.8.3",
+      "license": "MIT",
+      "upstream": "https://github.com/ccch1mneyyy/dsh-TUI",
+      "tag": "v0.8.3",
+      "commit": "6258da77587776d985d568b893de1933d8f607ec",
+      "distIntegrity": "sha512-QYhUKMy+5nra0qb6EK4PcWGqF6UQ+FrhSavhMlhoq95eSe/3rbisPZoEbRmPu0NDp+SlLrSA5cHnfFk1vbGHWA=="
+    }
+  },
+  "legacyCordis": {
+    "workspace": "packages/core",
+    "package": "cordis",
+    "version": "4.0.0-rc.8",
+    "runtime": false
+  }
+}

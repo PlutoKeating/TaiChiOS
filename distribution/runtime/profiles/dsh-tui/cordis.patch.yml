@@ -1,0 +1,3 @@
+# TaiChiOS user-layer overrides are intentionally empty in the factory profile.
+# System policy is added as a separate TaiChiOS bundle in the next spiral.
+[]

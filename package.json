@@ -12,6 +12,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --cache",
+    "install:runtime": "cd distribution/runtime && corepack pnpm install --frozen-lockfile",
+    "compat:runtime": "node tools/verify-runtime-compatibility.mjs",
     "yakumo": "node --expose-internals --import tsx --import @cordisjs/unyaml node_modules/yakumo/lib/cli.js",
     "build": "yarn yakumo esbuild && yarn yakumo tsc",
     "test": "yarn yakumo vitest --import tsx",

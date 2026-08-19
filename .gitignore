@@ -14,6 +14,7 @@ dist
 yarn.lock
 package-lock.json
 pnpm-lock.yaml
+!/distribution/runtime/pnpm-lock.yaml
 
 todo.md
 coverage/
@@ -34,6 +35,7 @@ report.*.json
 /distribution/live/chroot/
 /distribution/live/local/
 /distribution/live/tmp/
+/distribution/runtime/node_modules/
 *.hybrid.iso
 *.img
 *.qcow2

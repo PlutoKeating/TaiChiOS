@@ -5,6 +5,23 @@ on:
   pull_request:
 
 jobs:
+  runtime-compatibility:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+      - name: Setup pinned Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.16.0
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install pinned Harness runtime
+        run: yarn install:runtime
+      - name: Boot compatibility smoke
+        run: yarn compat:runtime
+
   lint:
     runs-on: ubuntu-latest
 
