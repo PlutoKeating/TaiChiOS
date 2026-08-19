@@ -19,6 +19,8 @@
     "compat:live": "node tools/verify-debian-live.mjs",
     "install:live-build": "tools/install-live-build.sh",
     "build:live": "sudo distribution/live/auto/config && sudo distribution/live/auto/build",
+    "build:release": "sudo distribution/live/auto/config --source true --apt-source-archives true && sudo distribution/live/auto/build",
+    "prepare:release": "node tools/prepare-release-artifacts.mjs",
     "clean:live": "sudo distribution/live/auto/clean",
     "test:live": "tools/test-live-boot.sh all",
     "test:install": "tools/test-installed-system.sh bios && tools/test-installed-system.sh uefi",

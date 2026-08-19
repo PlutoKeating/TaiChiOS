@@ -1,0 +1,145 @@
+name: Release image
+
+on:
+  push:
+    tags:
+      - 'v0.1.0-mvp.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to rebuild and publish
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    name: Build, verify, and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    environment: release
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+      - name: Validate release identity
+        id: contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v0\.1\.0-mvp\.[1-9][0-9]*$ ]]
+          tag_commit=$(git rev-list -n 1 "$RELEASE_TAG")
+          test "$tag_commit" = "$(git rev-parse HEAD)"
+          notes_file="docs/releases/${RELEASE_TAG#v}.md"
+          test -f "$notes_file"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refusing to replace published assets." >&2
+            exit 1
+          fi
+          echo "notes_file=$notes_file" >> "$GITHUB_OUTPUT"
+          echo "release_commit=$tag_commit" >> "$GITHUB_OUTPUT"
+      - name: Setup pinned Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.16.0
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install workspace dependencies
+        run: yarn install --immutable
+      - name: Install image, VM, and isolation tooling
+        timeout-minutes: 15
+        run: >-
+          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20
+          -o Acquire::https::Timeout=20 -o Acquire::ForceIPv4=true update &&
+          sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=20
+          -o Acquire::https::Timeout=20 -o Acquire::ForceIPv4=true install --yes
+          bubblewrap curl debootstrap debian-archive-keyring squashfs-tools xorriso isolinux
+          syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools qemu-system-x86
+          ovmf netcat-openbsd
+      - name: Install pinned live-build and Harness runtime
+        run: |
+          yarn install:live-build
+          yarn install:runtime
+      - name: Verify pinned inputs and runtime compatibility
+        run: |
+          yarn compat:live
+          yarn compat:runtime
+          yarn compat:cordis
+      - name: Build binary and corresponding-source images
+        run: yarn build:release
+      - name: Boot the binary image without networking under BIOS and UEFI
+        run: yarn test:live
+      - name: Install and boot the binary image from disk under BIOS and UEFI
+        run: yarn test:install
+      - name: Record the release build environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "runner-image=${ImageOS:-ubuntu24}"
+            echo "runner-architecture=${RUNNER_ARCH}"
+            dpkg-query -W -f='${Package}=${Version}\n' \
+              bubblewrap curl debootstrap debian-archive-keyring squashfs-tools xorriso \
+              isolinux syslinux-common grub-pc-bin grub-efi-amd64-bin mtools dosfstools \
+              qemu-system-x86 ovmf netcat-openbsd live-build
+          } > artifacts/live/build-environment.txt
+      - name: Generate release manifests and checksums
+        run: >-
+          yarn prepare:release --tag "$RELEASE_TAG"
+          --commit "${{ steps.contract.outputs.release_commit }}"
+      - name: Preserve the verified release payload
+        uses: actions/upload-artifact@v6
+        with:
+          name: taichios-${{ env.RELEASE_TAG }}
+          path: artifacts/live/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Attest the release payload
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: artifacts/live/*
+      - name: Revalidate the remote tag after verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --force origin "refs/tags/$RELEASE_TAG"
+          remote_commit=$(git rev-parse 'FETCH_HEAD^{commit}')
+          test "$remote_commit" = "${{ steps.contract.outputs.release_commit }}"
+      - name: Stage the GitHub prerelease payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES_FILE: ${{ steps.contract.outputs.notes_file }}
+        run: >-
+          gh release create "$RELEASE_TAG"
+          artifacts/live/taichios-0.1-amd64.hybrid.iso
+          artifacts/live/taichios-0.1-source.iso
+          artifacts/live/source.contents
+          artifacts/live/SHA256SUMS
+          artifacts/live/binary.packages
+          artifacts/live/chroot.packages.install
+          artifacts/live/chroot.packages.live
+          artifacts/live/build-environment.txt
+          artifacts/live/release-metadata.json
+          --verify-tag
+          --draft
+          --prerelease
+          --title "TaiChiOS ${RELEASE_TAG#v}"
+          --notes-file "$NOTES_FILE"
+      - name: Publish the complete GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$RELEASE_TAG" --draft=false --prerelease

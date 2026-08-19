@@ -6,6 +6,8 @@ LIVE_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 REPO_DIR=$(CDPATH= cd -- "$LIVE_DIR/../.." && pwd)
 ARTIFACT_DIR="$REPO_DIR/artifacts/live"
 IMAGE_NAME=taichios-0.1-amd64.hybrid.iso
+SOURCE_IMAGE_NAME=taichios-0.1-source.iso
+SOURCE_CONTENTS_NAME=source.contents
 IMAGE_BASE=${IMAGE_NAME%.hybrid.iso}
 export SOURCE_DATE_EPOCH=1787097600
 
@@ -15,7 +17,24 @@ lb build noauto "$@"
 
 test -f "$IMAGE_NAME"
 mkdir -p "$ARTIFACT_DIR"
+rm -f \
+  "$ARTIFACT_DIR/$IMAGE_NAME" \
+  "$ARTIFACT_DIR/$SOURCE_IMAGE_NAME" \
+  "$ARTIFACT_DIR/$SOURCE_CONTENTS_NAME" \
+  "$ARTIFACT_DIR/$IMAGE_NAME.sha256" \
+  "$ARTIFACT_DIR/SHA256SUMS" \
+  "$ARTIFACT_DIR/binary.packages" \
+  "$ARTIFACT_DIR/chroot.packages.install" \
+  "$ARTIFACT_DIR/chroot.packages.live" \
+  "$ARTIFACT_DIR/build-environment.txt" \
+  "$ARTIFACT_DIR/release-metadata.json"
 cp "$IMAGE_NAME" "$ARTIFACT_DIR/$IMAGE_NAME"
+
+if test -f "$SOURCE_IMAGE_NAME"; then
+  cp "$SOURCE_IMAGE_NAME" "$ARTIFACT_DIR/$SOURCE_IMAGE_NAME"
+  LC_ALL=C xorriso -indev "$SOURCE_IMAGE_NAME" -find / -type f -exec echo -- 2>/dev/null \
+    > "$ARTIFACT_DIR/$SOURCE_CONTENTS_NAME"
+fi
 
 if test -f "$IMAGE_BASE.packages"; then
   cp "$IMAGE_BASE.packages" "$ARTIFACT_DIR/binary.packages"

@@ -8,7 +8,7 @@
 
 [官方网站](https://taichios.arr2018.dpdns.org) · [简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
 
-![Status](https://img.shields.io/badge/status-0.1_MVP_candidate-6c5ce7)
+![Status](https://img.shields.io/badge/status-0.1_MVP_prerelease-6c5ce7)
 ![Platform](https://img.shields.io/badge/platform-x86__64-0984e3)
 ![Base](https://img.shields.io/badge/base-Debian-A81D33?logo=debian&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-2d3436)
@@ -22,7 +22,7 @@ TaiChiOS 是一个面向个人、团队与自治 Agent 的 AI 原生操作系统
 它不是一个把聊天窗口贴到 Linux 上的发行版。TaiChiOS 希望让系统本身成为一个可以理解目标、组合能力、持续工作、安装新能力并从失败中恢复的运行环境。
 
 > [!IMPORTANT]
-> TaiChiOS 已有可复现构建并通过 QEMU BIOS/UEFI 启动、安装、硬盘首启与 Recovery 验收的 0.1 MVP 候选，但尚未发布稳定镜像。当前默认账号只用于开发验收，不适合真实设备或生产环境。
+> TaiChiOS 提供首个可启动、可安装、可运行的 [`v0.1.0-mvp.1` 预发布镜像](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.1)，并已通过 QEMU BIOS/UEFI Live 启动、整盘安装、硬盘首启与 Recovery 验收。它不是稳定版；默认账号只用于开发验收，不适合真实设备或生产环境。
 
 包管理职责按生态分层：Debian 系统软件由 `apt` 管理；DeepSeek Harness 的 Profile 与插件沿用 DSH 原生的 pnpm；Yarn 4 仅驱动继承自 Cordis 上游的源码工作区、Yakumo 构建和仓库测试。Yarn 不是 Debian 系统包管理器，根工作区及其依赖不会被复制进系统镜像。
 

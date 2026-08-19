@@ -42,7 +42,7 @@ jobs:
         run: yarn compat:cordis
 
   live-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
 
     steps:
@@ -77,6 +77,15 @@ jobs:
         run: yarn test:live
       - name: Install and boot from disk under BIOS and UEFI
         run: yarn test:install
+      - name: Preserve the tested main-branch image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v6
+        with:
+          name: taichios-0.1-main-${{ github.sha }}
+          path: artifacts/live/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
 
   lint:
     runs-on: ubuntu-latest

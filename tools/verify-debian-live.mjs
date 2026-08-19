@@ -9,9 +9,12 @@ const workspace = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const read = path => readFileSync(resolve(workspace, path), 'utf8')
 const lock = JSON.parse(read('distribution/debian/snapshot.json'))
 const config = read('distribution/live/auto/config')
+const liveBuild = read('distribution/live/auto/build')
 const packages = read('distribution/live/config/package-lists/taichios.list.chroot')
 const bootTest = read('tools/test-live-boot.sh')
 const installTest = read('tools/test-installed-system.sh')
+const releaseWorkflow = read('.github/workflows/release.yml')
+const packageJson = JSON.parse(read('package.json'))
 
 assert.equal(lock.schemaVersion, 1)
 assert.equal(lock.distribution, 'Debian GNU/Linux')
@@ -29,6 +32,18 @@ for (const value of [lock.suite, lock.architecture, lock.snapshot.archiveUrl, lo
 assert.ok(config.includes('SOURCE_DATE_EPOCH=1787097600'), 'live-build must use the snapshot timestamp as its build epoch')
 assert.match(read('distribution/live/config/rootfs/excludes'), /^var\/cache\/apt\/pkgcache\.bin$/m)
 assert.match(read('distribution/live/config/rootfs/excludes'), /^var\/cache\/apt\/srcpkgcache\.bin$/m)
+assert.match(liveBuild, /SOURCE_IMAGE_NAME=taichios-0\.1-source\.iso/)
+assert.match(liveBuild, /SOURCE_CONTENTS_NAME=source\.contents/)
+assert.match(liveBuild, /release-metadata\.json/)
+assert.match(read('distribution/live/auto/clean'), /build-environment\.txt/)
+assert.equal(packageJson.scripts['build:release'], 'sudo distribution/live/auto/config --source true --apt-source-archives true && sudo distribution/live/auto/build')
+for (const releaseGate of ['yarn build:release', 'yarn test:live', 'yarn test:install', 'yarn prepare:release', 'gh release create']) {
+  assert.ok(releaseWorkflow.includes(releaseGate), `release workflow must contain: ${releaseGate}`)
+}
+assert.ok(
+  releaseWorkflow.indexOf('yarn test:install') < releaseWorkflow.indexOf('gh release create'),
+  'release publication must happen after install acceptance',
+)
 for (const option of ['--binary-images iso-hybrid', '--bootloaders "grub-pc grub-efi"', '--apt-secure true', '--firmware-chroot false', '--firmware-binary false']) {
   assert.ok(config.includes(option), `live-build config must contain: ${option}`)
 }

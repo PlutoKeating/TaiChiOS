@@ -143,11 +143,11 @@ export const pages: Record<string, ContentPage> = {
   },
   download: {
     slug: 'download',
-    eyebrow: '0.1 MVP CANDIDATE',
-    title: '先验证，再发布',
+    eyebrow: '0.1 MVP PRERELEASE',
+    title: '下载首个可启动安装镜像',
     lead:
-      'TaiChiOS 已经拥有可复现构建和完整 QEMU 验收，但尚未发布稳定安装镜像。这里不会用一个虚假的下载按钮掩盖项目状态。',
-    accent: '当前最可靠的体验方式是从源码构建，并在隔离虚拟机中验证。',
+      'v0.1.0-mvp.1 是 TaiChiOS 首个可启动、可安装、可运行的公开预发布镜像；发布流水线会验证同一份二进制 ISO 后再交付。',
+    accent: '它不是稳定版：请只在隔离虚拟机和可丢弃磁盘中试用，切勿安装到生产设备。',
     sections: [
       {
         eyebrow: 'CURRENT STATUS',
@@ -177,9 +177,9 @@ export const pages: Record<string, ContentPage> = {
       },
       {
         eyebrow: 'RELEASES',
-        title: '稳定发布尚未开始',
-        body: '当镜像具备真实硬件覆盖、生产凭据注册路径、发布清单与已签名校验信息后，正式版本会出现在 GitHub Releases。现在没有可诚实推荐给生产设备的版本。',
-        link: { label: '查看 GitHub Releases', href: `${site.repo}/releases` },
+        title: '获取 v0.1.0-mvp.1 预发布版',
+        body: 'Release 同时提供二进制混合 ISO、对应源码 ISO、源码/包清单、SHA-256 校验和、机器可读发布元数据与 GitHub 构建来源证明。真实硬件覆盖和生产凭据注册尚未完成。',
+        link: { label: '打开预发布下载页', href: `${site.repo}/releases/tag/v0.1.0-mvp.1` },
       },
     ],
   },

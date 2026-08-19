@@ -18,8 +18,12 @@ describe('website information architecture', () => {
     }
   })
 
-  it('does not claim a stable image exists', () => {
-    expect(pages.download.lead).toContain('尚未发布稳定安装镜像')
-    expect(pagesEn.download.lead).toContain('no stable installation image')
+  it('offers the prerelease without claiming it is stable', () => {
+    expect(pages.download.lead).toContain('v0.1.0-mvp.1')
+    expect(pages.download.accent).toContain('不是稳定版')
+    expect(pagesEn.download.lead).toContain('v0.1.0-mvp.1')
+    expect(pagesEn.download.accent).toContain('not stable')
+    expect(pages.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.1')
+    expect(pagesEn.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.1')
   })
 })
