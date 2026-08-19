@@ -131,8 +131,35 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
   const home = mkdtempSync(resolve(tmpdir(), 'taichios-dsh-tui-'))
   const transcript = resolve(home, 'typescript')
   try {
-    const bubblewrap = spawnSync('bwrap', ['--version'], { encoding: 'utf8' })
-    assert.equal(bubblewrap.status, 0, 'bwrap is required to prove offline startup')
+    const isolationProbe = ['--unshare-net', '--bind', '/', '/', 'true']
+    const bubblewrap = spawnSync('bwrap', isolationProbe, { encoding: 'utf8' })
+    let sandbox = 'bwrap'
+    if (bubblewrap.status !== 0) {
+      const userBoundary = [
+        '--unshare-user',
+        '--uid', String(process.getuid()),
+        '--gid', String(process.getgid()),
+      ]
+      const elevatedBubblewrap = spawnSync(
+        'sudo',
+        ['-n', 'bwrap', ...userBoundary, ...isolationProbe],
+        { encoding: 'utf8' },
+      )
+      assert.equal(
+        elevatedBubblewrap.status,
+        0,
+        `bwrap cannot create an offline namespace: ${bubblewrap.stderr || elevatedBubblewrap.stderr}`,
+      )
+      sandbox = [
+        'sudo -n env',
+        `DSH_HOME=${shellQuote(home)}`,
+        `HOME=${shellQuote(home)}`,
+        `PATH=${shellQuote(`${resolve(runtimeDirectory, 'node_modules/.bin')}:${process.env.PATH ?? ''}`)}`,
+        "TERM='xterm-256color'",
+        'bwrap',
+        userBoundary.join(' '),
+      ].join(' ')
+    }
     execFileSync(process.execPath, ['tools/prepare-dsh-profile.mjs', '--home', home], {
       cwd: workspace,
     })
@@ -142,7 +169,7 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
       '4',
       'script',
       '-qfec',
-      `bwrap --unshare-net --bind / / ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`,
+      `${sandbox} --unshare-net --bind / / ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`,
       transcript,
     ], {
       env: {
@@ -153,8 +180,12 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
       },
       stdio: 'ignore',
     })
-    assert.equal(result.status, 124, `TUI exited before the smoke timeout (status ${result.status})`)
     const output = readFileSync(transcript, 'utf8')
+    assert.equal(
+      result.status,
+      124,
+      `TUI exited before the smoke timeout (status ${result.status})\n${output.slice(-4000)}`,
+    )
     assert.match(output, /dsh-TUI/)
     assert.doesNotMatch(output, /plugin tree failed|ERR_MODULE_NOT_FOUND/)
   } finally {

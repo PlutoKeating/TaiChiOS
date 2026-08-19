@@ -14,6 +14,7 @@ corepack yarn compat:runtime
 ```
 
 Smoke 需要 Bubblewrap（`bwrap`），真实 TUI 会在没有网络接口的命名空间内启动。Debian/Ubuntu 构建宿主可安装 `bubblewrap` 包。
+若托管 CI 禁止非特权 user namespace，检查会在确认普通 `bwrap` 无法隔离后，仅对 Bubblewrap 边界使用免密 `sudo` 回退；TUI 仍在断网命名空间内运行，且启动失败时会输出伪终端记录。
 
 `package.json` 固定直接依赖，`pnpm-lock.yaml` 固定完整依赖图及完整性摘要，`../debian/runtime.lock.json` 记录发布提交、许可证与 Node 归档摘要。`pnpm-workspace.yaml` 只允许运行当前已审核的原生/安装脚本；任何新增项都必须重新进行威胁与权限审查。
 
