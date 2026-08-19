@@ -28,6 +28,32 @@ jobs:
       - name: Verify inherited Cordis boundary
         run: yarn compat:cordis
 
+  live-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+      - name: Setup pinned Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.16.0
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Verify Debian Live definition
+        run: yarn compat:live
+      - name: Install image and VM tooling
+        run: >-
+          sudo apt-get update && sudo apt-get install --yes
+          curl debootstrap squashfs-tools xorriso isolinux syslinux-common
+          grub-pc-bin grub-efi-amd64-bin mtools dosfstools qemu-system-x86 ovmf
+      - name: Install pinned live-build
+        run: yarn install:live-build
+      - name: Build hybrid image
+        run: yarn build:live
+      - name: Boot without networking under BIOS and UEFI
+        run: yarn test:live
+
   lint:
     runs-on: ubuntu-latest
 

@@ -1,0 +1,14 @@
+live-boot
+live-config
+live-config-systemd
+systemd-sysv
+linux-image-amd64
+locales
+sudo
+ca-certificates
+bash
+coreutils
+util-linux
+iproute2
+less
+nano

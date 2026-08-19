@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+install -d -m 0755 /run/taichios
+printf '%s\n' TAICHIOS_BOOT_READY > /run/taichios/boot-ready
+
+if test -c /dev/ttyS0; then
+  printf '%s\n' TAICHIOS_BOOT_READY > /dev/ttyS0
+fi

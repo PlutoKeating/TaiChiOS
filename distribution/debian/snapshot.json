@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "distribution": "Debian GNU/Linux",
+  "suite": "trixie",
+  "release": "13.6",
+  "architecture": "amd64",
+  "components": [
+    "main"
+  ],
+  "snapshot": {
+    "timestamp": "20260819T000000Z",
+    "archiveUrl": "https://snapshot.debian.org/archive/debian/20260819T000000Z/",
+    "releaseFile": "dists/trixie/Release",
+    "releaseSha256": "e89b36ee4d4e03b06573468d52c2a8be91ebdbda754c192f9e1a731ad738652f"
+  },
+  "liveBuild": {
+    "version": "1:20250505+deb13u1",
+    "debUrl": "https://snapshot.debian.org/archive/debian/20260819T000000Z/pool/main/l/live-build/live-build_20250505+deb13u1_all.deb",
+    "debSha256": "58e09779881cbcc631c49ceb703413e0247a87db01823e597b2a1c40a2afd8f4"
+  },
+  "policy": {
+    "securityArchive": false,
+    "updatesArchive": false,
+    "backportsArchive": false,
+    "firmware": false,
+    "notes": "The immutable snapshot is the complete package universe for this MVP fixture. Hardware firmware enablement requires a separately reviewed redistribution policy."
+  }
+}

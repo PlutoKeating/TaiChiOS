@@ -1,0 +1,52 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+LIVE_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SNAPSHOT_URL=https://snapshot.debian.org/archive/debian/20260819T000000Z/
+EXPECTED_LIVE_BUILD_VERSION=1:20250505+deb13u1
+
+ACTUAL_LIVE_BUILD_VERSION=$(dpkg-query -W -f='${Version}' live-build 2>/dev/null || true)
+if test "$ACTUAL_LIVE_BUILD_VERSION" != "$EXPECTED_LIVE_BUILD_VERSION"; then
+  echo "live-build $EXPECTED_LIVE_BUILD_VERSION is required; found: ${ACTUAL_LIVE_BUILD_VERSION:-not installed}" >&2
+  exit 1
+fi
+
+cd "$LIVE_DIR"
+
+lb config noauto \
+  --ignore-system-defaults \
+  --mode debian \
+  --distribution trixie \
+  --architecture amd64 \
+  --system live \
+  --binary-images iso-hybrid \
+  --bootloaders "grub-pc grub-efi" \
+  --archive-areas main \
+  --parent-archive-areas main \
+  --mirror-bootstrap "$SNAPSHOT_URL" \
+  --mirror-chroot "$SNAPSHOT_URL" \
+  --mirror-binary "$SNAPSHOT_URL" \
+  --parent-mirror-bootstrap "$SNAPSHOT_URL" \
+  --parent-mirror-chroot "$SNAPSHOT_URL" \
+  --parent-mirror-binary "$SNAPSHOT_URL" \
+  --security false \
+  --updates false \
+  --backports false \
+  --apt-secure true \
+  --apt-indices false \
+  --apt-options "--yes -o Acquire::Retries=5 -o Acquire::Languages=none" \
+  --apt-source-archives false \
+  --firmware-chroot false \
+  --firmware-binary false \
+  --debian-installer none \
+  --memtest none \
+  --uefi-secure-boot disable \
+  --checksums sha256 \
+  --source false \
+  --image-name taichios-0.1 \
+  --iso-application "TaiChiOS 0.1 Live" \
+  --iso-publisher "TaiChiOS Project" \
+  --iso-volume TAICHIOS_01 \
+  --bootappend-live "boot=live components hostname=taichios username=taichi locales=zh_CN.UTF-8,en_US.UTF-8 keyboard-layouts=us console=tty0 console=ttyS0,115200n8" \
+  "$@"
