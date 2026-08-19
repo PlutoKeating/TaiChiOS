@@ -6,7 +6,7 @@ import { corePrinciples, site } from '../content/site'
 import { corePrinciplesEn } from '../content/site.en'
 import { homeCopy } from '../i18n/home'
 import { useLanguage, useLocalizedDocument } from '../i18n/language'
-import { pageMeta } from '../lib/meta'
+import { pageMeta } from '../seo/meta'
 import type { Route } from './+types/home'
 
 export const meta: Route.MetaFunction = () =>
