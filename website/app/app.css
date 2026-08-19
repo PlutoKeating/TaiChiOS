@@ -323,35 +323,72 @@ button {
 
 .system-map {
   position: relative;
+  isolation: isolate;
   display: grid;
-  gap: 0.6rem;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 1.5rem;
-  background: #090d15;
-  padding: clamp(1rem, 3vw, 1.5rem);
-  box-shadow: 0 40px 100px rgb(0 0 0 / 0.35);
+  min-height: clamp(29rem, 39vw, 35rem);
+  align-items: center;
+  padding-block: 2rem;
 }
 
-.system-map-glow {
+.system-map-halo {
   position: absolute;
-  top: 10%;
-  left: 35%;
-  width: 40%;
-  height: 80%;
-  background: rgb(124 58 237 / 0.12);
-  filter: blur(45px);
+  z-index: -2;
+  top: 50%;
+  left: 50%;
+  width: min(90%, 31rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(124 58 237 / 0.18), rgb(34 211 238 / 0.06) 44%, transparent 70%);
+  filter: blur(26px);
+}
+
+.system-map-mark {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: min(66%, 25rem);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 42px rgb(124 58 237 / 0.2));
+}
+
+.system-map-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.system-map-layers {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem clamp(6rem, 10vw, 9rem);
+  align-items: center;
 }
 
 .system-layer {
   position: relative;
   display: flex;
   min-width: 0;
+  min-height: 5rem;
+  justify-content: center;
   flex-direction: column;
-  border: 1px solid rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.11);
   border-radius: 0.9rem;
-  background: rgb(255 255 255 / 0.035);
+  background: linear-gradient(135deg, rgb(13 17 27 / 0.92), rgb(20 24 37 / 0.78));
   padding: 0.85rem 1rem;
+  box-shadow: 0 16px 42px rgb(0 0 0 / 0.24);
+  backdrop-filter: blur(16px);
+}
+
+.system-layer:nth-child(odd) {
+  transform: translateX(-0.5rem);
+}
+
+.system-layer:nth-child(even) {
+  transform: translateX(0.5rem);
 }
 
 .footer-heading {
@@ -387,6 +424,33 @@ button {
 @media (min-width: 80rem) {
   .site-container {
     width: min(100% - 5rem, 78rem);
+  }
+}
+
+@media (max-width: 47.999rem) {
+  .system-map {
+    min-height: 31rem;
+  }
+
+  .system-map-mark {
+    width: min(72%, 18rem);
+  }
+
+  .system-map-layers {
+    gap: 0.75rem 3.5rem;
+  }
+
+  .system-layer {
+    min-height: 4.5rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .system-layer:nth-child(odd) {
+    transform: translateX(-0.2rem);
+  }
+
+  .system-layer:nth-child(even) {
+    transform: translateX(0.2rem);
   }
 }
 

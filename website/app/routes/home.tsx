@@ -30,7 +30,14 @@ export default function Home() {
               <span className="font-mono text-xs tracking-wider text-slate-500">{copy.platform}</span>
             </div>
             <p className="eyebrow mt-10">{copy.eyebrow}</p>
-            <h1 className="display-title mt-6 text-balance">{copy.title}</h1>
+            <h1 className="display-title mt-6 text-balance">
+              {locale === 'zh' ? (
+                <>
+                  <span className="block">系统，</span>
+                  <span className="block">由意图而生。</span>
+                </>
+              ) : copy.title}
+            </h1>
             <p className="lead mt-7 max-w-2xl">
               {copy.lead}
             </p>
@@ -44,9 +51,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-xl lg:mx-0">
-            <div className="hero-orb left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-hidden="true" />
-            <div className="relative rotate-[1deg]"><SystemMap /></div>
+          <div className="relative mx-auto w-full max-w-2xl lg:mx-0">
+            <SystemMap />
           </div>
         </div>
       </section>
