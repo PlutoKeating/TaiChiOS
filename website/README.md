@@ -45,3 +45,5 @@ The production output is `build/client`. Every public route is pre-rendered and 
 All interface changes must follow [the responsive and accessibility standard](./docs/RESPONSIVE_STANDARD.md) and [the design system](./design-system/taichios/MASTER.md). A change that works at only one viewport is incomplete.
 
 Deployments are managed by `.github/workflows/website.yml`; do not deploy from a developer machine except for an explicitly authorized recovery operation. Cloudflare credentials belong in GitHub Actions secrets and must never be committed.
+
+Cloudflare Pages runs `public/_worker.js` in advanced mode. It permanently redirects every generated `*.pages.dev` hostname—including deployment aliases—to the production hostname while preserving the path and query string. Requests already using the production hostname are served from the static asset binding.
