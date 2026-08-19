@@ -7,6 +7,10 @@
   "license": "MIT",
   "licenseFile": "../licenses/cordis-MIT.txt",
   "licenseSha256": "0dae0d2ebf73243a1aca6e29f495fb52e71e14ba858c421af9c471f9cf4a2d84",
+  "vendoringDecision": {
+    "policyCondition": "security-audit-source-freeze",
+    "rationale": "Freeze the exact inherited source during the TaiChiOS 0.1 migration so provenance and the legacy behavioral baseline remain independently auditable."
+  },
   "packages": {
     "@cordisjs/plugin-group": "1.0.0",
     "@cordisjs/plugin-hmr": "1.0.15",
@@ -40,5 +44,18 @@
         "packages/utils/tsconfig.json"
       ]
     }
-  ]
+  ],
+  "updateProcedure": {
+    "steps": [
+      "Select and record an immutable upstream commit.",
+      "Review the full upstream diff and license before replacing files.",
+      "Update package identities, license digest, and the explicit patch queue.",
+      "Run compat:cordis, build, lint, and the full inherited test suite."
+    ]
+  },
+  "exitStrategy": {
+    "condition": "TaiChiOS-owned acceptance no longer depends on the inherited Cordis suite.",
+    "action": "Remove vendor/cordis and its root workspace entry; continue consuming the official published runtime lock.",
+    "retainedProvenance": "Git parent history and the cordiverse/cordis upstream remote retain the source history."
+  }
 }

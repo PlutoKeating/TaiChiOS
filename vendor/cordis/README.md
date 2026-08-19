@@ -1,6 +1,6 @@
 # Cordis 历史快照边界
 
-此目录原样保全 TaiChiOS 建仓父提交所继承的 Cordis 包与测试。固定来源为 `cordiverse/cordis@8cc9e33fab69e2d0476d126baaf2acb24e6a6ab4`，MIT 许可证保存在 `../licenses/cordis-MIT.txt`。
+此目录原样保全 TaiChiOS 建仓父提交所继承的 Cordis 包与测试。固定来源为 `cordiverse/cordis@8cc9e33fab69e2d0476d126baaf2acb24e6a6ab4`，MIT 许可证保存在 `../licenses/cordis-MIT.txt`。它满足上游政策中的“安全审计要求冻结完整源码”条件：迁移期必须能独立核对来源与旧行为基线，而不是把此快照作为发行运行时。
 
 `upstream.json` 是机器可读的来源与本地补丁队列。当前没有行为补丁；只有把 TypeScript 配置从 `packages/*` 移到 `vendor/cordis/packages/*` 后所需的相对路径调整。运行 `corepack yarn compat:cordis` 可逐文件验证此声明，原 Cordis 测试继续由根 `corepack yarn test` 执行。
 

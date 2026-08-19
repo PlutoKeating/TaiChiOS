@@ -25,6 +25,9 @@ const filesInBoundary = () => {
 }
 
 assert.match(manifest.commit, /^[a-f0-9]{40}$/)
+assert.equal(manifest.vendoringDecision.policyCondition, 'security-audit-source-freeze')
+assert.ok(manifest.updateProcedure.steps.length >= 4)
+assert.match(manifest.exitStrategy.action, /Remove vendor\/cordis/)
 execFileSync('git', ['cat-file', '-e', `${manifest.commit}^{commit}`], { cwd: workspace })
 
 const upstreamFiles = execFileSync('git', [
@@ -49,7 +52,11 @@ for (const path of upstreamFiles) {
     maxBuffer: 16 * 1024 * 1024,
   })
   if (patchedFiles.has(path)) {
-    assert.notDeepEqual(vendored, upstream, `declared patch has no diff: ${path}`)
+    const original = upstream.toString()
+    const expected = path.includes('/tests/')
+      ? original.replace('"../../../tsconfig.test"', '"../../../../../tsconfig.test"')
+      : original.replace('"../../tsconfig.base"', '"../../../../tsconfig.base"')
+    assert.equal(vendored.toString(), expected, `relocation patch differs from its declared scope: ${path}`)
   } else {
     assert.deepEqual(vendored, upstream, `undeclared local patch: ${path}`)
   }

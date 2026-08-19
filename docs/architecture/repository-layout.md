@@ -52,7 +52,7 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 
 ## Cordis 上游边界
 
-仓库前身 Cordis fork 的 `core`、`loader`、`include` 等源码已迁入 `vendor/cordis/packages`。选择 vendoring 是为了在 TaiChiOS 0.1 迁移期保留原测试、Git 历史与审计基线；发行运行时仍消费 `@deepseek-ai/cordis`，不会加载此快照。
+仓库前身 Cordis fork 的 `core`、`loader`、`include` 等源码已迁入 `vendor/cordis/packages`。选择 vendoring 对应上游政策的“安全审计要求冻结完整源码”：TaiChiOS 0.1 迁移期需要保留原测试、Git 历史与可独立核对的旧行为基线；发行运行时仍消费 `@deepseek-ai/cordis`，不会加载此快照。
 
 不可变来源、MIT 许可证、包版本和本地补丁队列记录在 `vendor/cordis/upstream.json`。当前唯一补丁是迁移后 TypeScript 配置对仓库根目录的相对路径调整，不修改 Cordis 行为。`corepack yarn compat:cordis` 会逐文件比对固定上游提交并运行在 CI 中。
 
