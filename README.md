@@ -87,7 +87,7 @@ docs/           宪法、ADR、架构、安全、发布和开发文档
 vendor/         显式固定且保留许可证的上游源码/补丁
 ```
 
-当前 `packages/core`、`packages/loader` 等目录来自本仓库前身 Cordis fork。它们将在专门的历史保全迁移中归入明确的上游边界；详见[仓库布局](./docs/architecture/repository-layout.md)。
+本仓库前身 Cordis fork 的源码已按原提交身份归入 `vendor/cordis`，不属于 TaiChiOS 自有能力包，也不进入官方 Harness 运行时；详见[仓库布局](./docs/architecture/repository-layout.md)。
 
 ## 参与这项事业
 

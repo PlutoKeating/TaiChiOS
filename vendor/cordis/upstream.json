@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/cordiverse/cordis.git",
+  "commit": "8cc9e33fab69e2d0476d126baaf2acb24e6a6ab4",
+  "commitDate": "2026-08-13T21:48:18+08:00",
+  "sourcePrefix": "packages",
+  "license": "MIT",
+  "licenseFile": "../licenses/cordis-MIT.txt",
+  "licenseSha256": "0dae0d2ebf73243a1aca6e29f495fb52e71e14ba858c421af9c471f9cf4a2d84",
+  "packages": {
+    "@cordisjs/plugin-group": "1.0.0",
+    "@cordisjs/plugin-hmr": "1.0.15",
+    "@cordisjs/plugin-include": "1.0.4",
+    "@cordisjs/plugin-loader": "1.0.0-rc.5",
+    "@cordisjs/plugin-logger-console": "1.0.0",
+    "@cordisjs/plugin-timer": "1.1.2",
+    "@cordisjs/utils": "1.0.0",
+    "cordis": "4.0.0-rc.8",
+    "create-cordis": "0.3.0"
+  },
+  "localPatches": [
+    {
+      "id": "taichios-workspace-relocation",
+      "reason": "Adjust root TypeScript config paths after moving the unchanged snapshot under vendor/cordis.",
+      "files": [
+        "packages/core/tsconfig.json",
+        "packages/core/tests/tsconfig.json",
+        "packages/create/tsconfig.json",
+        "packages/group/tsconfig.json",
+        "packages/hmr/tsconfig.json",
+        "packages/hmr/tests/tsconfig.json",
+        "packages/include/tsconfig.json",
+        "packages/include/tests/tsconfig.json",
+        "packages/loader/tsconfig.json",
+        "packages/loader/tests/tsconfig.json",
+        "packages/logger-console/tsconfig.json",
+        "packages/logger-console/tests/tsconfig.json",
+        "packages/timer/tsconfig.json",
+        "packages/timer/tests/tsconfig.json",
+        "packages/utils/tsconfig.json"
+      ]
+    }
+  ]
+}

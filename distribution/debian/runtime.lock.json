@@ -57,7 +57,7 @@
     }
   },
   "legacyCordis": {
-    "workspace": "packages/core",
+    "workspace": "vendor/cordis/packages/core",
     "package": "cordis",
     "version": "4.0.0-rc.8",
     "runtime": false

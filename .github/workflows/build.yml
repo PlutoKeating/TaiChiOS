@@ -23,6 +23,8 @@ jobs:
         run: yarn install:runtime
       - name: Boot compatibility smoke
         run: yarn compat:runtime
+      - name: Verify inherited Cordis boundary
+        run: yarn compat:cordis
 
   lint:
     runs-on: ubuntu-latest

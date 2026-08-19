@@ -15,5 +15,5 @@ Exact commits and package digests, rather than floating branch names, become bui
 
 The authoritative machine-readable pins and SHA/integrity values live in [`distribution/debian/runtime.lock.json`](../../distribution/debian/runtime.lock.json). The installed dependency graph is frozen by [`distribution/runtime/pnpm-lock.yaml`](../../distribution/runtime/pnpm-lock.yaml).
 
-The inherited `cordis@4.0.0-rc.8` source under `packages/core` is not part of this runtime candidate. It remains an isolated historical/upstream snapshot until issue #1 moves it behind an explicit repository boundary.
-`packages/core` 中继承的 `cordis@4.0.0-rc.8` 不进入此运行时候选；在 Issue #1 完成显式上游边界迁移前，它只作为隔离的历史快照保留。
+The inherited `cordis@4.0.0-rc.8` source under `vendor/cordis` is not part of this runtime candidate. Its immutable upstream identity and relocation-only patch queue are recorded in `vendor/cordis/upstream.json`.
+`vendor/cordis` 中继承的 `cordis@4.0.0-rc.8` 不进入此运行时候选；其不可变上游身份与仅用于目录迁移的补丁队列记录在 `vendor/cordis/upstream.json`。
