@@ -135,20 +135,16 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
     const bubblewrap = spawnSync('bwrap', isolationProbe, { encoding: 'utf8' })
     let sandbox = 'bwrap'
     if (bubblewrap.status !== 0) {
-      const userBoundary = [
-        '--unshare-user',
-        '--uid', String(process.getuid()),
-        '--gid', String(process.getgid()),
-      ]
-      const elevatedBubblewrap = spawnSync(
+      const userBoundary = ['--setuid', String(process.getuid()), '--setgid', String(process.getgid())]
+      const elevatedNamespace = spawnSync(
         'sudo',
-        ['-n', 'bwrap', ...userBoundary, ...isolationProbe],
+        ['-n', 'unshare', '--net', ...userBoundary, 'true'],
         { encoding: 'utf8' },
       )
       assert.equal(
-        elevatedBubblewrap.status,
+        elevatedNamespace.status,
         0,
-        `bwrap cannot create an offline namespace: ${bubblewrap.stderr || elevatedBubblewrap.stderr}`,
+        `cannot create an offline namespace: ${bubblewrap.stderr || elevatedNamespace.stderr}`,
       )
       sandbox = [
         'sudo -n env',
@@ -156,7 +152,7 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
         `HOME=${shellQuote(home)}`,
         `PATH=${shellQuote(`${resolve(runtimeDirectory, 'node_modules/.bin')}:${process.env.PATH ?? ''}`)}`,
         "TERM='xterm-256color'",
-        'bwrap',
+        'unshare --net',
         userBoundary.join(' '),
       ].join(' ')
     }
@@ -169,7 +165,9 @@ check('dsh-TUI starts offline in a pseudo-terminal', () => {
       '4',
       'script',
       '-qfec',
-      `${sandbox} --unshare-net --bind / / ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`,
+      sandbox === 'bwrap'
+        ? `${sandbox} --unshare-net --bind / / ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`
+        : `${sandbox} ${shellQuote(process.execPath)} ${shellQuote(bin)} --profile dsh-tui`,
       transcript,
     ], {
       env: {
