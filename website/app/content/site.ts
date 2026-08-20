@@ -146,7 +146,7 @@ export const pages: Record<string, ContentPage> = {
     eyebrow: '0.1 MVP PRERELEASE',
     title: '下载首个可启动安装镜像',
     lead:
-      'v0.1.0-mvp.1 是 TaiChiOS 首个可启动、可安装、可运行的公开预发布镜像；发布流水线会验证同一份二进制 ISO 后再交付。',
+      'v0.1.0-mvp.2 是 TaiChiOS 首个可启动、可安装、可运行的公开预发布镜像；发布流水线会验证同一份二进制 ISO 后再交付。',
     accent: '它不是稳定版：请只在隔离虚拟机和可丢弃磁盘中试用，切勿安装到生产设备。',
     sections: [
       {
@@ -177,9 +177,9 @@ export const pages: Record<string, ContentPage> = {
       },
       {
         eyebrow: 'RELEASES',
-        title: '获取 v0.1.0-mvp.1 预发布版',
+        title: '获取 v0.1.0-mvp.2 预发布版',
         body: 'Release 同时提供二进制混合 ISO、对应源码 ISO、源码/包清单、SHA-256 校验和、机器可读发布元数据与 GitHub 构建来源证明。真实硬件覆盖和生产凭据注册尚未完成。',
-        link: { label: '打开预发布下载页', href: `${site.repo}/releases/tag/v0.1.0-mvp.1` },
+        link: { label: '打开预发布下载页', href: `${site.repo}/releases/tag/v0.1.0-mvp.2` },
       },
     ],
   },

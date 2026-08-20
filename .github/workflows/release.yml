@@ -80,6 +80,8 @@ jobs:
           yarn compat:cordis
       - name: Build binary and corresponding-source images
         run: yarn build:release
+      - name: Transfer release artifacts to the workflow user
+        run: sudo chown -R "$(id -u):$(id -g)" artifacts/live
       - name: Boot the binary image without networking under BIOS and UEFI
         run: yarn test:live
       - name: Install and boot the binary image from disk under BIOS and UEFI

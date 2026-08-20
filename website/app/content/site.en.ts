@@ -92,7 +92,7 @@ export const pagesEn: Record<string, ContentPage> = {
     slug: 'download',
     eyebrow: '0.1 MVP PRERELEASE',
     title: 'Download the first bootable installer',
-    lead: 'v0.1.0-mvp.1 is the first public bootable, installable, runnable TaiChiOS image. The release pipeline verifies the same binary ISO before delivering it.',
+    lead: 'v0.1.0-mvp.2 is the first public bootable, installable, runnable TaiChiOS image. The release pipeline verifies the same binary ISO before delivering it.',
     accent: 'It is not stable: use an isolated virtual machine and disposable storage, never a production device.',
     sections: [
       {
@@ -120,9 +120,9 @@ export const pagesEn: Record<string, ContentPage> = {
       },
       {
         eyebrow: 'RELEASES',
-        title: 'Get the v0.1.0-mvp.1 prerelease',
+        title: 'Get the v0.1.0-mvp.2 prerelease',
         body: 'The Release includes the hybrid binary ISO, corresponding-source ISO, source/package manifests, SHA-256 checksums, machine-readable release metadata, and GitHub build provenance. Real-hardware coverage and production credential enrollment are not complete.',
-        link: { label: 'Open the prerelease download', href: `${site.repo}/releases/tag/v0.1.0-mvp.1` },
+        link: { label: 'Open the prerelease download', href: `${site.repo}/releases/tag/v0.1.0-mvp.2` },
       },
     ],
   },
