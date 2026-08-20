@@ -7,12 +7,12 @@ const copy = {
   zh: {
     eyebrow: 'LIVE GITHUB DATA', title: '最新发布与完整下载', loading: '正在从 GitHub 获取最新 Release…',
     error: '暂时无法读取 GitHub 数据。页面不会用过期的硬编码版本替代实时结果。', assets: '发布资产',
-    history: '版本记录', commits: '最新提交', published: '发布于', prerelease: '预发布', stable: '稳定发布', empty: 'GitHub 尚无公开 Release。',
+    history: '版本记录', commits: '提交记录', published: '发布于', prerelease: '预发布', stable: '稳定发布', empty: 'GitHub 尚无公开 Release。',
   },
   en: {
     eyebrow: 'LIVE GITHUB DATA', title: 'Latest release and complete downloads', loading: 'Loading the latest GitHub Release…',
     error: 'GitHub data is temporarily unavailable. The site will not substitute a stale hardcoded version.', assets: 'Release assets',
-    history: 'Version history', commits: 'Recent commits', published: 'Published', prerelease: 'Prerelease', stable: 'Stable', empty: 'No public GitHub Release is available.',
+    history: 'Version history', commits: 'Commit history', published: 'Published', prerelease: 'Prerelease', stable: 'Stable', empty: 'No public GitHub Release is available.',
   },
 } as const
 

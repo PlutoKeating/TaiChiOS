@@ -79,7 +79,7 @@ export const pagesEn: Record<string, ContentPage> = {
       {
         eyebrow: 'OFFLINE & RECOVERY',
         title: 'Losing the network or interface does not mean losing the system',
-        body: 'The 0.1 candidate has verified offline Live boot, whole-disk BIOS/UEFI installation, first boot, and independent recovery. A broken TUI falls back to a plain shell.',
+        body: 'The current implementation has verified offline Live boot, whole-disk BIOS/UEFI installation, first boot, and independent recovery. A broken TUI falls back to a plain shell; the exact version and release channel come from live GitHub data.',
         features: [
           { title: 'Offline boot', description: 'Base login and recovery do not require a remote Provider.', icon: HardDriveDownload },
           { title: 'Dual firmware path', description: 'One hybrid image supports BIOS and UEFI.', icon: Cpu },
@@ -90,10 +90,10 @@ export const pagesEn: Record<string, ContentPage> = {
   },
   download: {
     slug: 'download',
-    eyebrow: 'PUBLIC PRERELEASE',
+    eyebrow: 'GITHUB RELEASES',
     title: 'Download the first bootable installer',
     lead: 'This page reads the latest bootable, installable, runnable image, complete assets, digests, release history, and commit history live from GitHub instead of embedding release data.',
-    accent: 'It is not stable: use an isolated virtual machine and disposable storage, never a production device.',
+    accent: 'Follow the live GitHub release channel below; test prerelease assets only in an isolated VM with disposable storage.',
     sections: [
       {
         eyebrow: 'CURRENT STATUS',
@@ -145,7 +145,7 @@ export const pagesEn: Record<string, ContentPage> = {
       {
         eyebrow: 'CHANGE LIFECYCLE',
         title: 'Change is an auditable state machine',
-        body: 'The target flow is propose → resolve → authorize → dry-run → stage → rollback point → activate → verify → commit or rollback. The 0.1 candidate implements only a minimal file Change Set.',
+        body: 'The target flow is propose → resolve → authorize → dry-run → stage → rollback point → activate → verify → commit or rollback. The current implementation includes only a minimal file Change Set.',
         link: { label: 'Read the compatibility and rollback model', href: `${site.repo}/blob/main/docs/releases/compatibility.md` },
       },
       {
@@ -245,7 +245,7 @@ export const pagesEn: Record<string, ContentPage> = {
       {
         eyebrow: 'SECRETS',
         title: 'Model access does not mean exposing credentials',
-        body: 'The target architecture routes calls through Provider Registry and Secret Service. This full control plane remains in design; the 0.1 candidate ships only an offline mock Provider.',
+        body: 'The target architecture routes calls through Provider Registry and Secret Service. This full control plane remains in design; the current implementation ships only an offline mock Provider.',
         link: { label: 'Read trust and autonomy principles', href: `${site.repo}/blob/main/docs/security/trust-and-autonomy.md` },
       },
       {
@@ -275,14 +275,14 @@ export const pagesEn: Record<string, ContentPage> = {
       },
       {
         eyebrow: 'NOW',
-        title: '0.1 MVP candidate',
+        title: 'The currently implemented system loop',
         body: 'The current loop is boot → install → first boot → supervised Harness → fallback → recovery. It proves the direction can run, not that it is production ready.',
         link: { label: 'Read the project roadmap', href: `${site.repo}/blob/main/docs/roadmap.md` },
       },
       {
         eyebrow: 'NEXT',
         title: 'Harden before expanding',
-        body: 'The next phase prioritizes production credentials, real hardware, and release packaging before completing identity, Provider, Change Set, and Guardian contracts.',
+        body: 'The next phase prioritizes production credentials and real-hardware coverage before completing identity, Provider, Change Set, and Guardian contracts.',
         link: { label: 'Read the founding decisions', href: `${site.repo}/blob/main/docs/founding-decisions.md` },
       },
     ],

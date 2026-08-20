@@ -6,8 +6,8 @@ export const homeCopy = {
     title: '系统，由意图而生。',
     lead: 'TaiChiOS 是面向 Human 与 Working Agent 的 Debian 衍生操作系统。Linux 提供强边界，Cordis 组合能力，Change Set 与 Recovery 为每次改变留下退路。',
     explore: '探索系统',
-    state: '查看 0.1 状态',
-    warning: '尚未发布稳定镜像。当前候选只建议在隔离虚拟机与可丢弃磁盘中测试。',
+    state: '查看发布状态',
+    warning: '安装前请查看 GitHub 实时发布状态；预发布镜像只应在隔离虚拟机与可丢弃磁盘中测试。',
     proofLabel: '项目验证摘要',
     proofs: [
       ['BIOS + UEFI', '混合 Live 与安装路径'],
@@ -36,8 +36,8 @@ export const homeCopy = {
     title: 'An operating system born from intent.',
     lead: 'TaiChiOS is a Debian derivative for Humans and Working Agents. Linux enforces boundaries, Cordis composes capabilities, and Change Sets plus Recovery keep a way back.',
     explore: 'Explore the system',
-    state: 'View 0.1 status',
-    warning: 'No stable image has been published. Test this candidate only in an isolated VM with disposable storage.',
+    state: 'View release status',
+    warning: 'Check the live GitHub release status before installation; test prerelease images only in an isolated VM with disposable storage.',
     proofLabel: 'Project verification summary',
     proofs: [
       ['BIOS + UEFI', 'Hybrid Live and installation paths'],

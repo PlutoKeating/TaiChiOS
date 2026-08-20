@@ -21,13 +21,15 @@ describe('website information architecture', () => {
 
   it('describes release behavior without embedding a release version', () => {
     expect(pages.download.lead).toContain('GitHub')
-    expect(pages.download.accent).toContain('不是稳定版')
+    expect(pages.download.accent).toContain('GitHub')
     expect(pagesEn.download.lead).toContain('GitHub')
-    expect(pagesEn.download.accent).toContain('not stable')
+    expect(pagesEn.download.accent).toContain('GitHub')
     expect(pages.download.sections[0].body).toContain('Live Shell')
     expect(pages.download.sections[0].body).toContain('用户登录页')
     expect(pagesEn.download.sections[0].body).toContain('Live shell')
     expect(pagesEn.download.sections[0].body).toContain('user login page')
-    expect(JSON.stringify({ pages, pagesEn, homeCopy })).not.toMatch(/v\d+\.\d+\.\d+-mvp\.\d+/)
+    const staticCopy = JSON.stringify({ pages, pagesEn, homeCopy })
+    expect(staticCopy).not.toMatch(/v\d+\.\d+\.\d+-mvp\.\d+/)
+    expect(staticCopy).not.toMatch(/\b0\.1\b|MVP 候选|MVP candidate/i)
   })
 })

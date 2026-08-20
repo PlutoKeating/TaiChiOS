@@ -132,7 +132,7 @@ export const pages: Record<string, ContentPage> = {
       {
         eyebrow: 'OFFLINE & RECOVERY',
         title: '失去网络或界面，不等于失去系统',
-        body: '0.1 MVP 候选已经验证离线 Live 启动、BIOS/UEFI 整盘安装、硬盘首启与独立 Recovery 路径。TUI 异常时仍可回退到普通 Shell。',
+        body: '当前实现已经验证离线 Live 启动、BIOS/UEFI 整盘安装、硬盘首启与独立 Recovery 路径。TUI 异常时仍可回退到普通 Shell；精确版本与发布渠道以 GitHub 实时数据为准。',
         features: [
           { title: '离线可启动', description: '基础登录与恢复不依赖远端 Provider。', icon: HardDriveDownload },
           { title: '双固件路径', description: '同一混合镜像覆盖 BIOS 与 UEFI。', icon: Cpu },
@@ -143,11 +143,11 @@ export const pages: Record<string, ContentPage> = {
   },
   download: {
     slug: 'download',
-    eyebrow: 'PUBLIC PRERELEASE',
+    eyebrow: 'GITHUB RELEASES',
     title: '下载首个可启动安装镜像',
     lead:
       '本页从 GitHub 实时读取最新的可启动、可安装、可运行预发布镜像、完整资产、校验摘要、版本记录与提交记录，不内嵌版本数据。',
-    accent: '它不是稳定版：请只在隔离虚拟机和可丢弃磁盘中试用，切勿安装到生产设备。',
+    accent: '请以下方 GitHub 实时发布渠道为准；预发布资产只应在隔离虚拟机和可丢弃磁盘中试用。',
     sections: [
       {
         eyebrow: 'CURRENT STATUS',
@@ -203,7 +203,7 @@ export const pages: Record<string, ContentPage> = {
       {
         eyebrow: 'CHANGE LIFECYCLE',
         title: '变化是一条可审计状态机',
-        body: '完整目标流程是 propose → resolve → authorize → dry-run → stage → rollback point → activate → verify → commit or rollback。0.1 候选实现了最小文件 Change Set，完整事务式升级仍在后续设计队列。',
+        body: '完整目标流程是 propose → resolve → authorize → dry-run → stage → rollback point → activate → verify → commit or rollback。当前实现只包含最小文件 Change Set，完整事务式升级仍在后续设计队列。',
         link: { label: '阅读兼容与回滚模型', href: `${site.repo}/blob/main/docs/releases/compatibility.md` },
       },
       {
@@ -306,7 +306,7 @@ export const pages: Record<string, ContentPage> = {
       {
         eyebrow: 'SECRETS',
         title: '模型接入不等于暴露密钥',
-        body: '目标架构通过 Provider Registry 和 Secret Service 路由调用并最小化凭据披露。该完整控制面仍在设计阶段；0.1 候选仅提供离线 mock Provider。',
+        body: '目标架构通过 Provider Registry 和 Secret Service 路由调用并最小化凭据披露。该完整控制面仍在设计阶段；当前实现仅提供离线 mock Provider。',
         link: { label: '阅读信任与自主原则', href: `${site.repo}/blob/main/docs/security/trust-and-autonomy.md` },
       },
       {
@@ -337,14 +337,14 @@ export const pages: Record<string, ContentPage> = {
       },
       {
         eyebrow: 'NOW',
-        title: '0.1 MVP 候选',
+        title: '当前已实现的系统闭环',
         body: '当前闭环是 boot → install → first boot → supervised Harness → fallback → recovery。它证明方向可运行，但还不是面向真实设备的稳定发行版。',
         link: { label: '阅读项目路线图', href: `${site.repo}/blob/main/docs/roadmap.md` },
       },
       {
         eyebrow: 'NEXT',
         title: '先加固，再扩张',
-        body: '下一阶段优先处理生产凭据、真实硬件与发布包装，再继续组织身份、Provider、Change Set 与 Guardian 的完整系统合同。',
+        body: '下一阶段优先处理生产凭据与真实硬件覆盖，再继续组织身份、Provider、Change Set 与 Guardian 的完整系统合同。',
         link: { label: '查看成立决策', href: `${site.repo}/blob/main/docs/founding-decisions.md` },
       },
     ],

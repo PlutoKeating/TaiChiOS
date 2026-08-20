@@ -12,14 +12,24 @@ const githubHeaders = (env) => {
 }
 
 async function repositorySnapshot(env) {
-  const [releaseResponse, commitResponse] = await Promise.all([
-    fetch(`${GITHUB_API}/releases?per_page=20`, { headers: githubHeaders(env) }),
-    fetch(`${GITHUB_API}/commits?sha=main&per_page=20`, { headers: githubHeaders(env) }),
-  ])
-  if (!releaseResponse.ok || !commitResponse.ok) {
-    throw new Error(`GitHub API failure: releases=${releaseResponse.status}, commits=${commitResponse.status}`)
+  const fetchAll = async (path) => {
+    const values = []
+    let page = 1
+    while (true) {
+      const separator = path.includes('?') ? '&' : '?'
+      const response = await fetch(`${GITHUB_API}${path}${separator}per_page=100&page=${page}`, { headers: githubHeaders(env) })
+      if (!response.ok) throw new Error(`GitHub API failure: ${path}=${response.status}`)
+      const current = await response.json()
+      if (!Array.isArray(current)) throw new Error(`GitHub API returned a non-array for ${path}`)
+      values.push(...current)
+      if (current.length < 100) return values
+      page += 1
+    }
   }
-  const [rawReleases, rawCommits] = await Promise.all([releaseResponse.json(), commitResponse.json()])
+  const [rawReleases, rawCommits] = await Promise.all([
+    fetchAll('/releases'),
+    fetchAll('/commits?sha=main'),
+  ])
   const releases = rawReleases.filter((release) => !release.draft).map((release) => ({
     tag: release.tag_name,
     name: release.name || release.tag_name,
