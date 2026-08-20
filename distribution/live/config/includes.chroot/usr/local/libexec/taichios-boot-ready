@@ -8,6 +8,6 @@ if test -c /dev/ttyS0; then
   printf '%s\n' TAICHIOS_BOOT_READY > /dev/ttyS0
 fi
 
-if grep -qw boot=live /proc/cmdline; then
+if grep -qw boot=live /proc/cmdline && ! grep -qw taichios.install /proc/cmdline; then
   systemctl restart --no-block getty@tty1.service
 fi

@@ -57,6 +57,7 @@ for (const requiredPackage of ['linux-image-amd64', 'live-boot', 'systemd-sysv',
 assert.match(bootTest, /TAICHIOS_BOOT_READY/)
 assert.match(bootTest, /OVMF_CODE/)
 assert.match(liveEnableHook, /systemctl enable getty@tty1\.service/, 'the graphical console must end at an interactive tty1')
+assert.match(bootReady, /! grep -qw taichios\.install/, 'the Live console handoff must not race the installer')
 assert.match(bootReady, /systemctl restart --no-block getty@tty1\.service/, 'Live boot must reveal tty1 after status output')
 for (const [name, bootConfig] of [
   ['live-build defaults', config],
@@ -82,7 +83,9 @@ assert.match(installer, /grub-install --target=i386-pc/)
 assert.match(installer, /grub-install --target=x86_64-efi/)
 assert.match(installer, /127\.0\.0\.1 localhost/)
 assert.match(installer, /127\.0\.1\.1 taichios/)
+assert.match(installer, /::1 localhost ip6-localhost ip6-loopback/)
 const firstBoot = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-first-boot')
+assert.match(firstBoot, /getent hosts "\$\(hostname\)"/, 'installed acceptance must verify local hostname resolution')
 assert.match(firstBoot, /\/home\/taichi\/.dsh/)
 assert.match(firstBoot, /\/home\/creator\/.dsh/)
 const harnessUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-harness@.service')
