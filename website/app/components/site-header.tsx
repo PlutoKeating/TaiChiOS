@@ -5,6 +5,7 @@ import { primaryNavigation, secondaryNavigation, site } from '../content/site'
 import { useLanguage } from '../i18n/language'
 import { ui } from '../i18n/ui'
 import { Brand, GitHubIcon } from './brand'
+import { useRepositoryData } from '../github/repository-context'
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   `inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 ${
@@ -16,6 +17,8 @@ export function SiteHeader() {
   const location = useLocation()
   const { locale, toggleLocale } = useLanguage()
   const copy = ui[locale]
+  const { data, loading } = useRepositoryData()
+  const releaseLabel = data?.latest?.tag ?? (loading ? 'GITHUB…' : 'RELEASE N/A')
   const labelFor = (href: string) => ({
     '/features': copy.features,
     '/download': copy.download,
@@ -51,7 +54,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <span className="status-pill"><span className="status-dot" />0.1 MVP</span>
+          <span className="status-pill"><span className="status-dot" />{releaseLabel}</span>
           <button type="button" className="language-button" onClick={toggleLocale} aria-label={copy.languageAction} title={copy.languageAction}>
             <Languages aria-hidden="true" className="size-4" /><span>{copy.languageShort}</span>
           </button>

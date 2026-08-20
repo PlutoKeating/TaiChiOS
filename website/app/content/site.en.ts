@@ -90,18 +90,20 @@ export const pagesEn: Record<string, ContentPage> = {
   },
   download: {
     slug: 'download',
-    eyebrow: '0.1 MVP PRERELEASE',
+    eyebrow: 'PUBLIC PRERELEASE',
     title: 'Download the first bootable installer',
-    lead: 'v0.1.0-mvp.3 is the first public bootable, installable, runnable TaiChiOS image. The release pipeline verifies the same binary ISO before delivering it.',
+    lead: 'This page reads the latest bootable, installable, runnable image, complete assets, digests, release history, and commit history live from GitHub instead of embedding release data.',
     accent: 'It is not stable: use an isolated virtual machine and disposable storage, never a production device.',
     sections: [
       {
         eyebrow: 'CURRENT STATUS',
-        title: 'The implemented 0.1 vertical slice',
-        body: 'The candidate is pinned to a Debian 13.6 snapshot with fixed Node, DeepSeek Harness, Cordis, and dsh-TUI versions. Offline boot, installation, first boot, and recovery have passed on x86_64 QEMU.',
+        title: 'The implemented bootable slice',
+        body: 'The release pipeline uses pinned system and runtime inputs. BIOS/UEFI gates prove that the Live shell appears directly on tty1 and an installed system stops at an interactive user login page instead of boot logs; exact versions and assets come from the live GitHub data below.',
         bullets: [
           'Hybrid Live ISO booting under BIOS and UEFI',
+          'Live boot autologin directly to the tty1 shell',
           'Text whole-disk installer with GPT, ESP, ext4, and GRUB',
+          'Installed boot presents the tty1 user login page without autologin',
           'Isolated state for taichi and creator users',
           'Mock Provider, supervised Harness, and shell fallback',
           'Default, previous-known-good, and Recovery boot paths',
@@ -117,12 +119,6 @@ export const pagesEn: Record<string, ContentPage> = {
           { title: 'Use a disposable disk', description: 'The current installer erases its target and is not for daily devices.', icon: ShieldCheck },
         ],
         link: { label: 'Open the Live build guide', href: `${site.repo}/blob/main/distribution/live/README.md` },
-      },
-      {
-        eyebrow: 'RELEASES',
-        title: 'Get the v0.1.0-mvp.3 prerelease',
-        body: 'The Release includes the hybrid binary ISO, corresponding-source ISO, source/package manifests, SHA-256 checksums, machine-readable release metadata, and GitHub build provenance. Real-hardware coverage and production credential enrollment are not complete.',
-        link: { label: 'Open the prerelease download', href: `${site.repo}/releases/tag/v0.1.0-mvp.3` },
       },
     ],
   },

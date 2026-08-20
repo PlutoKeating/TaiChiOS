@@ -1,7 +1,7 @@
 export const homeCopy = {
   zh: {
-    status: '0.1 MVP CANDIDATE',
-    platform: 'X86_64 · DEBIAN 13',
+    statusUnavailable: 'RELEASE N/A',
+    platform: 'X86_64 · DEBIAN',
     eyebrow: 'TAICHI 生万象',
     title: '系统，由意图而生。',
     lead: 'TaiChiOS 是面向 Human 与 Working Agent 的 Debian 衍生操作系统。Linux 提供强边界，Cordis 组合能力，Change Set 与 Recovery 为每次改变留下退路。',
@@ -12,7 +12,7 @@ export const homeCopy = {
     proofs: [
       ['BIOS + UEFI', '混合 Live 与安装路径'],
       ['OFFLINE FIRST', '无网络仍可启动与恢复'],
-      ['163 TESTS', 'Cordis 继承边界回归'],
+      ['VERIFIED', '仓库测试与镜像验收门禁'],
       ['APACHE-2.0', 'TaiChiOS 原创工作许可'],
     ],
     principlesEyebrow: 'DESIGN PRINCIPLES',
@@ -30,8 +30,8 @@ export const homeCopy = {
     source: '查看源码',
   },
   en: {
-    status: '0.1 MVP CANDIDATE',
-    platform: 'X86_64 · DEBIAN 13',
+    statusUnavailable: 'RELEASE N/A',
+    platform: 'X86_64 · DEBIAN',
     eyebrow: 'FROM INTENT, A SYSTEM',
     title: 'An operating system born from intent.',
     lead: 'TaiChiOS is a Debian derivative for Humans and Working Agents. Linux enforces boundaries, Cordis composes capabilities, and Change Sets plus Recovery keep a way back.',
@@ -42,7 +42,7 @@ export const homeCopy = {
     proofs: [
       ['BIOS + UEFI', 'Hybrid Live and installation paths'],
       ['OFFLINE FIRST', 'Boot and recover without networking'],
-      ['163 TESTS', 'Inherited Cordis boundary regression'],
+      ['VERIFIED', 'Repository and image acceptance gates'],
       ['APACHE-2.0', 'License for original TaiChiOS work'],
     ],
     principlesEyebrow: 'DESIGN PRINCIPLES',

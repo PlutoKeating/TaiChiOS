@@ -8,6 +8,7 @@ import { homeCopy } from '../i18n/home'
 import { useLanguage, useLocalizedDocument } from '../i18n/language'
 import { pageMeta } from '../seo/meta'
 import type { Route } from './+types/home'
+import { useRepositoryData } from '../github/repository-context'
 
 export const meta: Route.MetaFunction = () =>
   pageMeta('AI 原生、可组合、可恢复的操作系统', site.description, '/')
@@ -16,6 +17,8 @@ export default function Home() {
   const { locale } = useLanguage()
   const copy = homeCopy[locale]
   const principles = locale === 'zh' ? corePrinciples : corePrinciplesEn
+  const { data, loading } = useRepositoryData()
+  const releaseLabel = data?.latest?.tag ?? (loading ? 'GITHUB…' : copy.statusUnavailable)
   useLocalizedDocument(
     locale === 'zh' ? 'AI 原生、可组合、可恢复的操作系统 — TaiChiOS' : 'AI-native, composable, and recoverable — TaiChiOS',
     copy.lead,
@@ -26,7 +29,7 @@ export default function Home() {
         <div className="site-container hero-layout">
           <div className="hero-copy relative z-10">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="status-pill"><span className="status-dot" />{copy.status}</span>
+              <span className="status-pill"><span className="status-dot" />{releaseLabel}</span>
               <span className="font-mono text-xs tracking-wider text-slate-500">{copy.platform}</span>
             </div>
             <p className="eyebrow mt-10">{copy.eyebrow}</p>

@@ -14,6 +14,7 @@ import { SiteHeader } from './components/site-header'
 import { site } from './content/site'
 import { LanguageProvider, useLanguage } from './i18n/language'
 import { ui } from './i18n/ui'
+import { RepositoryDataProvider } from './github/repository-context'
 import type { Route } from './+types/root'
 import './app.css'
 
@@ -55,7 +56,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <LanguageProvider>
-          <LocalizedShell>{children}</LocalizedShell>
+          <RepositoryDataProvider><LocalizedShell>{children}</LocalizedShell></RepositoryDataProvider>
         </LanguageProvider>
         <ScrollRestoration />
         <Scripts />

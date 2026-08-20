@@ -143,19 +143,21 @@ export const pages: Record<string, ContentPage> = {
   },
   download: {
     slug: 'download',
-    eyebrow: '0.1 MVP PRERELEASE',
+    eyebrow: 'PUBLIC PRERELEASE',
     title: '下载首个可启动安装镜像',
     lead:
-      'v0.1.0-mvp.3 是 TaiChiOS 首个可启动、可安装、可运行的公开预发布镜像；发布流水线会验证同一份二进制 ISO 后再交付。',
+      '本页从 GitHub 实时读取最新的可启动、可安装、可运行预发布镜像、完整资产、校验摘要、版本记录与提交记录，不内嵌版本数据。',
     accent: '它不是稳定版：请只在隔离虚拟机和可丢弃磁盘中试用，切勿安装到生产设备。',
     sections: [
       {
         eyebrow: 'CURRENT STATUS',
-        title: '已实现的 0.1 纵向切片',
-        body: '候选镜像基于 Debian 13.6 快照，固定 Node、DeepSeek Harness、Cordis 和 dsh-TUI 版本，已在 x86_64 QEMU 中完成离线启动、安装、首启与恢复验收。',
+        title: '已实现的启动纵向切片',
+        body: '发布流水线使用固定系统与运行时输入。BIOS/UEFI 门禁确认 Live Shell 会直接出现在 tty1，安装后的首次启动会停在可交互的用户登录页，而不是 boot log；精确版本与资产以下方 GitHub 实时数据为准。',
         bullets: [
           '混合 Live ISO：BIOS 与 UEFI 均可启动',
+          'Live 启动：tty1 自动登录并直接进入 Shell',
           '文本整盘安装器：GPT、EFI System、ext4 与 GRUB',
+          '安装后启动：tty1 显示用户登录页，不自动进入会话',
           'taichi 与 creator 用户状态隔离',
           'mock Provider、受监督 Harness 与纯 Shell 回退',
           '默认、previous-known-good 与 Recovery 启动路径',
@@ -174,12 +176,6 @@ export const pages: Record<string, ContentPage> = {
           label: '查看 Live 构建文档',
           href: `${site.repo}/blob/main/distribution/live/README.md`,
         },
-      },
-      {
-        eyebrow: 'RELEASES',
-        title: '获取 v0.1.0-mvp.3 预发布版',
-        body: 'Release 同时提供二进制混合 ISO、对应源码 ISO、源码/包清单、SHA-256 校验和、机器可读发布元数据与 GitHub 构建来源证明。真实硬件覆盖和生产凭据注册尚未完成。',
-        link: { label: '打开预发布下载页', href: `${site.repo}/releases/tag/v0.1.0-mvp.3` },
       },
     ],
   },

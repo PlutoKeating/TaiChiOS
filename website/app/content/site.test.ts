@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { pages, primaryNavigation, secondaryNavigation } from './site'
 import { pagesEn } from './site.en'
 import { publicRoutes } from '../../react-router.config'
+import { homeCopy } from '../i18n/home'
 
 describe('website information architecture', () => {
   it('keeps every public content route in navigation and prerendering', () => {
@@ -18,12 +19,15 @@ describe('website information architecture', () => {
     }
   })
 
-  it('offers the prerelease without claiming it is stable', () => {
-    expect(pages.download.lead).toContain('v0.1.0-mvp.3')
+  it('describes release behavior without embedding a release version', () => {
+    expect(pages.download.lead).toContain('GitHub')
     expect(pages.download.accent).toContain('不是稳定版')
-    expect(pagesEn.download.lead).toContain('v0.1.0-mvp.3')
+    expect(pagesEn.download.lead).toContain('GitHub')
     expect(pagesEn.download.accent).toContain('not stable')
-    expect(pages.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.3')
-    expect(pagesEn.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.3')
+    expect(pages.download.sections[0].body).toContain('Live Shell')
+    expect(pages.download.sections[0].body).toContain('用户登录页')
+    expect(pagesEn.download.sections[0].body).toContain('Live shell')
+    expect(pagesEn.download.sections[0].body).toContain('user login page')
+    expect(JSON.stringify({ pages, pagesEn, homeCopy })).not.toMatch(/v\d+\.\d+\.\d+-mvp\.\d+/)
   })
 })

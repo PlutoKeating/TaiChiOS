@@ -12,8 +12,8 @@ TaiChiOS follows the proven public information shape used by mature Linux distri
 ## Content rules
 
 - The website must distinguish implemented behavior from planned architecture.
-- The `0.1 MVP candidate` label must remain visible until a stable release is actually published.
-- Download calls to action must not imply that an unpublished image is available.
+- Global release labels must come from the same-origin GitHub repository endpoint; no page may embed a concrete current tag.
+- Download calls to action and version history must reflect public GitHub Releases and their actual assets, or display an explicit unavailable state.
 - Canonical technical detail stays in repository documentation; the website curates and explains it instead of forking specifications.
 - The sole production origin is `https://taichios.arr2018.dpdns.org`.
 
