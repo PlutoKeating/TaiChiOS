@@ -36,7 +36,7 @@ assert.match(liveBuild, /SOURCE_IMAGE_NAME=taichios-0\.1-source\.iso/)
 assert.match(liveBuild, /SOURCE_CONTENTS_NAME=source\.contents/)
 assert.match(liveBuild, /release-metadata\.json/)
 assert.match(read('distribution/live/auto/clean'), /build-environment\.txt/)
-assert.equal(packageJson.scripts['build:release'], 'sudo distribution/live/auto/config --source true --apt-source-archives true && sudo distribution/live/auto/build')
+assert.equal(packageJson.scripts['build:release'], 'sudo distribution/live/auto/config --source true --source-images iso --apt-source-archives true && sudo distribution/live/auto/build')
 for (const releaseGate of ['yarn build:release', 'yarn test:live', 'yarn test:install', 'yarn prepare:release', 'gh release create']) {
   assert.ok(releaseWorkflow.includes(releaseGate), `release workflow must contain: ${releaseGate}`)
 }

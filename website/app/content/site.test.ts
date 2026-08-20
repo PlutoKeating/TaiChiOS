@@ -19,11 +19,11 @@ describe('website information architecture', () => {
   })
 
   it('offers the prerelease without claiming it is stable', () => {
-    expect(pages.download.lead).toContain('v0.1.0-mvp.2')
+    expect(pages.download.lead).toContain('v0.1.0-mvp.3')
     expect(pages.download.accent).toContain('不是稳定版')
-    expect(pagesEn.download.lead).toContain('v0.1.0-mvp.2')
+    expect(pagesEn.download.lead).toContain('v0.1.0-mvp.3')
     expect(pagesEn.download.accent).toContain('not stable')
-    expect(pages.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.2')
-    expect(pagesEn.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.2')
+    expect(pages.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.3')
+    expect(pagesEn.download.sections.at(-1)?.link?.href).toContain('/releases/tag/v0.1.0-mvp.3')
   })
 })
