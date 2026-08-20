@@ -54,11 +54,13 @@ for (const option of ['--binary-images iso-hybrid', '--bootloaders "grub-pc grub
 for (const requiredPackage of ['linux-image-amd64', 'live-boot', 'systemd-sysv', 'parted', 'grub-pc-bin', 'grub-efi-amd64-bin', 'squashfs-tools']) {
   assert.match(packages, new RegExp(`^${requiredPackage}$`, 'm'))
 }
-assert.match(bootTest, /TAICHIOS_BOOT_READY/)
+assert.match(bootTest, /TAICHIOS_LIVE_SHELL_READY/)
 assert.match(bootTest, /OVMF_CODE/)
 assert.match(liveEnableHook, /systemctl enable getty@tty1\.service/, 'the graphical console must end at an interactive tty1')
 assert.match(bootReady, /! grep -qw taichios\.install/, 'the Live console handoff must not race the installer')
 assert.match(bootReady, /systemctl restart --no-block getty@tty1\.service/, 'Live boot must reveal tty1 after status output')
+assert.match(bootReady, /ps -t tty1 -o user=/, 'Live readiness must observe a user process on tty1')
+assert.match(bootReady, /TAICHIOS_LIVE_SHELL_READY/, 'Live readiness must distinguish an interactive shell from basic boot')
 for (const [name, bootConfig] of [
   ['live-build defaults', config],
   ['Live GRUB menu', liveGrub],
@@ -76,6 +78,7 @@ for (const [name, bootConfig] of [
   )
 }
 assert.equal(installTest.match(/-nic none/g)?.length, 3, 'every install acceptance boot must disable networking')
+assert.match(installTest, /TAICHIOS_INSTALLED_LOGIN_READY/, 'installed boot must reach the local login page')
 assert.match(read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery'), /TaiChiOS Recovery/)
 const installer = read('distribution/live/config/includes.chroot/usr/local/sbin/taichios-install')
 assert.match(installer, /refusing destructive install without --yes/)
@@ -86,6 +89,8 @@ assert.match(installer, /127\.0\.1\.1 taichios/)
 assert.match(installer, /::1 localhost ip6-localhost ip6-loopback/)
 const firstBoot = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-first-boot')
 assert.match(firstBoot, /getent hosts "\$\(hostname\)"/, 'installed acceptance must verify local hostname resolution')
+assert.match(firstBoot, /until ps -t tty1 -o comm= \| grep -Eq/, 'installed readiness must wait for the tty1 login process')
+assert.match(firstBoot, /TAICHIOS_INSTALLED_LOGIN_READY/, 'installed readiness must distinguish the login page from basic boot')
 assert.match(firstBoot, /\/home\/taichi\/.dsh/)
 assert.match(firstBoot, /\/home\/creator\/.dsh/)
 const harnessUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-harness@.service')

@@ -9,6 +9,14 @@ test -f /run/taichios/harness/taichi.ready
 test -f /run/taichios/harness/creator.ready
 systemctl is-active --quiet taichios-mock-provider.service
 getent hosts "$(hostname)" >/dev/null
+systemctl is-active --quiet getty@tty1.service
+login_attempt=0
+until ps -t tty1 -o comm= | grep -Eq '^[[:space:]]*agetty[[:space:]]*$'; do
+  login_attempt=$((login_attempt + 1))
+  test "$login_attempt" -lt 30
+  sleep 1
+done
 install -d -m 0755 /run/taichios
 printf '%s\n' installed > /run/taichios/installed-ready
 printf '%s\n' TAICHIOS_INSTALLED_READY > /dev/ttyS0
+printf '%s\n' TAICHIOS_INSTALLED_LOGIN_READY > /dev/ttyS0

@@ -1,7 +1,7 @@
 [Unit]
 Description=Validate the installed TaiChiOS deployment
-After=local-fs.target taichios-harness@taichi.service taichios-harness@creator.service
-Wants=taichios-harness@taichi.service taichios-harness@creator.service
+After=local-fs.target getty@tty1.service taichios-harness@taichi.service taichios-harness@creator.service
+Wants=getty@tty1.service taichios-harness@taichi.service taichios-harness@creator.service
 ConditionPathExists=/var/lib/taichios/deployments/current
 
 [Service]

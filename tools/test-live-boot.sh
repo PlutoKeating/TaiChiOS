@@ -30,7 +30,7 @@ run_qemu() {
   ACTIVE_QEMU_PID=$!
 
   while kill -0 "$ACTIVE_QEMU_PID" 2>/dev/null; do
-    if grep -Fq TAICHIOS_BOOT_READY "$LOG_PATH"; then
+    if grep -Fq TAICHIOS_LIVE_SHELL_READY "$LOG_PATH"; then
       kill "$ACTIVE_QEMU_PID" 2>/dev/null || true
       sleep 1
       kill -KILL "$ACTIVE_QEMU_PID" 2>/dev/null || true
@@ -47,7 +47,7 @@ run_qemu() {
       wait "$ACTIVE_QEMU_PID" 2>/dev/null || true
       ACTIVE_QEMU_PID=
       cat "$LOG_PATH" >&2
-      echo "$MODE_NAME boot did not publish TAICHIOS_BOOT_READY within ${BOOT_TIMEOUT}s" >&2
+      echo "$MODE_NAME boot did not expose an interactive tty1 shell within ${BOOT_TIMEOUT}s" >&2
       return 1
     fi
 

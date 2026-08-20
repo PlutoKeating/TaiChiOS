@@ -76,7 +76,7 @@ qemu-system-x86_64 -machine accel=tcg -m 2048 -smp 2 -no-reboot -display none -n
   -serial file:"$LOG_PATH" -monitor none -drive file="$DISK_PATH",format=raw,if=virtio \
   -boot order=c $FIRMWARE_ARGS &
 ACTIVE_QEMU_PID=$!
-wait_for_marker TAICHIOS_INSTALLED_READY
+wait_for_marker TAICHIOS_INSTALLED_LOGIN_READY
 stop_qemu
 
 : > "$LOG_PATH"

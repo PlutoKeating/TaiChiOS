@@ -1,6 +1,6 @@
 # Debian Live build
 
-这里是标准 Debian `live-build` 工程。镜像契约是：amd64、Debian 13 `trixie` 固定快照、BIOS + UEFI、systemd、多用户文本终端，以及串口验收标记 `TAICHIOS_BOOT_READY`。启动参数同时保留串口与本地图形控制台，并把 `tty0` 作为主控制台，避免 VMM 画面停留在早期内核日志。
+这里是标准 Debian `live-build` 工程。镜像契约是：amd64、Debian 13 `trixie` 固定快照、BIOS + UEFI、systemd 与多用户文本终端。启动参数同时保留串口与本地图形控制台，并把 `tty0` 作为主控制台。Live 只有在 tty1 实际出现用户 Shell 后才输出 `TAICHIOS_LIVE_SHELL_READY`；安装后只有在 tty1 实际运行用户登录页后才输出 `TAICHIOS_INSTALLED_LOGIN_READY`，避免把 boot log 误判为可交互系统。
 
 ## 构建与验收
 
@@ -18,7 +18,7 @@ corepack yarn test:install
 
 这里的 Yarn 命令只是仓库级构建入口：Debian 包由 `apt` 安装，DSH 插件能力保留 pnpm 兼容，根 Yarn 工作区和开发依赖不会进入 ISO。
 
-`tools/test-live-boot.sh` 分别以 SeaBIOS 和 OVMF 启动 ISO。`tools/test-installed-system.sh` 还会向空盘安装、移除 ISO、从磁盘启动，再进入独立 Recovery target。所有 QEMU 都不配置网卡。
+`tools/test-live-boot.sh` 分别以 SeaBIOS 和 OVMF 启动 ISO，并等待 tty1 Live Shell 行为标记。`tools/test-installed-system.sh` 还会向空盘安装、移除 ISO、从磁盘启动，确认 tty1 用户登录页，再进入独立 Recovery target。所有 QEMU 都不配置网卡。
 
 发布版本使用 `corepack yarn build:release`，一次配置并构建二进制 ISO 与对应的 `taichios-0.1-source.iso`，同时生成源码文件清单 `source.contents`；不要在它之后调用 `build:live`，后者会恢复日常构建配置。完成启动与安装验收后，`corepack yarn prepare:release --tag TAG --commit FULL_GIT_SHA` 会验证必需制品并生成 `release-metadata.json` 与覆盖所有发布文件的 `SHA256SUMS`。标签发布工作流自动执行完整路径、保存 CI 制品、生成 GitHub build-provenance attestation，并发布 GitHub Prerelease。
 

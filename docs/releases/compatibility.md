@@ -1,14 +1,14 @@
 # Compatibility matrix
 
-The `main` line contains the bootable `v0.1.0-mvp.3` prerelease, not a stable release. Its pinned Debian image, installer, first boot, Harness composition, and independent recovery target pass automated QEMU acceptance under BIOS and UEFI.
+The `main` line contains the bootable `v0.1.0-mvp.4` prerelease, not a stable release. Its pinned Debian image, direct Live shell, installer, installed login page, Harness composition, and independent recovery target pass automated QEMU acceptance under BIOS and UEFI.
 
-`main` 已包含可启动的 `v0.1.0-mvp.3` 预发布版，而不是稳定发行版。固定 Debian 镜像、安装器、首启、Harness 组合及独立恢复目标均已通过 BIOS 与 UEFI 的自动 QEMU 验收。
+`main` 已包含可启动的 `v0.1.0-mvp.4` 预发布版，而不是稳定发行版。固定 Debian 镜像、直接进入的 Live Shell、安装器、安装后用户登录页、Harness 组合及独立恢复目标均已通过 BIOS 与 UEFI 的自动 QEMU 验收。
 
 | TaiChiOS line | Debian snapshot | Node.js | Cordis | DeepSeek Harness | dsh-TUI | Status |
 |---|---|---|---|---|---|---|
 | `next` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | Development line |
 | `staging` | — | — | — | — | — | Branch initialized; no candidate |
-| [`v0.1.0-mvp.3`](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.3) (`main`) | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | MVP prerelease; QEMU verified |
+| [`v0.1.0-mvp.4`](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.4) (`main`) | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | MVP prerelease; direct Live shell and installed login verified |
 
 Exact commits and package digests, rather than floating branch names, become build inputs.
 构建输入使用精确提交与制品摘要，不使用浮动分支或 dist-tag。
