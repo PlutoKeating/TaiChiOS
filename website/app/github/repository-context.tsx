@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { isRepositorySnapshot, type RepositorySnapshot } from './repository'
+import { fetchRepositorySnapshot, type RepositorySnapshot } from './repository'
 
 type RepositoryState = {
   data: RepositorySnapshot | null
@@ -14,21 +14,23 @@ export function RepositoryDataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+    let refresh: number | undefined
+    const controller = new AbortController()
     const load = async () => {
       try {
-        const response = await fetch('/api/github/repository', { headers: { accept: 'application/json' } })
-        const payload: unknown = await response.json()
-        if (!response.ok || !isRepositorySnapshot(payload)) throw new Error('invalid repository response')
-        if (active) setState({ data: payload, loading: false, error: false })
+        const snapshot = await fetchRepositorySnapshot(fetch, controller.signal)
+        if (active) setState({ data: snapshot, loading: false, error: false })
       } catch {
         if (active) setState((current) => ({ data: current.data, loading: false, error: true }))
+      } finally {
+        if (active) refresh = window.setTimeout(load, 15 * 60_000)
       }
     }
     void load()
-    const refresh = window.setInterval(load, 60_000)
     return () => {
       active = false
-      window.clearInterval(refresh)
+      controller.abort()
+      if (refresh !== undefined) window.clearTimeout(refresh)
     }
   }, [])
 
