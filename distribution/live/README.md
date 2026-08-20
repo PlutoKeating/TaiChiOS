@@ -1,6 +1,6 @@
 # Debian Live build
 
-这里是标准 Debian `live-build` 工程。镜像契约是：amd64、Debian 13 `trixie` 固定快照、BIOS + UEFI、systemd、多用户文本终端，以及串口验收标记 `TAICHIOS_BOOT_READY`。
+这里是标准 Debian `live-build` 工程。镜像契约是：amd64、Debian 13 `trixie` 固定快照、BIOS + UEFI、systemd、多用户文本终端，以及串口验收标记 `TAICHIOS_BOOT_READY`。启动参数同时保留串口与本地图形控制台，并把 `tty0` 作为主控制台，避免 VMM 画面停留在早期内核日志。
 
 ## 构建与验收
 

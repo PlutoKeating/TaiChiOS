@@ -6,11 +6,11 @@ KERNEL=$(basename "$(ls -1 /boot/vmlinuz-* | sort -V | tail -1)")
 INITRD=$(basename "$(ls -1 /boot/initrd.img-* | sort -V | tail -1)")
 cat <<EOF
 menuentry 'TaiChiOS Previous (known-good)' --id taichios-previous --hotkey=p {
-  linux /boot/$KERNEL root=UUID=$ROOT_UUID ro console=tty0 console=ttyS0,115200n8 taichios.deployment=previous
+  linux /boot/$KERNEL root=UUID=$ROOT_UUID ro console=ttyS0,115200n8 console=tty0 taichios.deployment=previous
   initrd /boot/$INITRD
 }
 menuentry 'TaiChiOS Recovery' --id taichios-recovery --hotkey=r {
-  linux /boot/$KERNEL root=UUID=$ROOT_UUID ro console=tty0 console=ttyS0,115200n8 systemd.unit=taichios-recovery.target taichios.recovery=1
+  linux /boot/$KERNEL root=UUID=$ROOT_UUID ro console=ttyS0,115200n8 console=tty0 systemd.unit=taichios-recovery.target taichios.recovery=1
   initrd /boot/$INITRD
 }
 EOF

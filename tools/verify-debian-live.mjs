@@ -15,6 +15,10 @@ const bootTest = read('tools/test-live-boot.sh')
 const installTest = read('tools/test-installed-system.sh')
 const releaseWorkflow = read('.github/workflows/release.yml')
 const packageJson = JSON.parse(read('package.json'))
+const liveGrub = read('distribution/live/config/bootloaders/grub-pc/config.cfg')
+const recoveryGrub = read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery')
+const liveEnableHook = read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot')
+const bootReady = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-boot-ready')
 
 assert.equal(lock.schemaVersion, 1)
 assert.equal(lock.distribution, 'Debian GNU/Linux')
@@ -52,12 +56,32 @@ for (const requiredPackage of ['linux-image-amd64', 'live-boot', 'systemd-sysv',
 }
 assert.match(bootTest, /TAICHIOS_BOOT_READY/)
 assert.match(bootTest, /OVMF_CODE/)
+assert.match(liveEnableHook, /systemctl enable getty@tty1\.service/, 'the graphical console must end at an interactive tty1')
+assert.match(bootReady, /systemctl restart --no-block getty@tty1\.service/, 'Live boot must reveal tty1 after status output')
+for (const [name, bootConfig] of [
+  ['live-build defaults', config],
+  ['Live GRUB menu', liveGrub],
+  ['installed recovery GRUB menu', recoveryGrub],
+]) {
+  assert.match(
+    bootConfig,
+    /console=ttyS0,115200n8 console=tty0/,
+    `${name} must keep the graphical console primary while retaining serial output`,
+  )
+  assert.doesNotMatch(
+    bootConfig,
+    /console=tty0 console=ttyS0,115200n8/,
+    `${name} must not leave the VMM console on an early boot frame`,
+  )
+}
 assert.equal(installTest.match(/-nic none/g)?.length, 3, 'every install acceptance boot must disable networking')
 assert.match(read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery'), /TaiChiOS Recovery/)
 const installer = read('distribution/live/config/includes.chroot/usr/local/sbin/taichios-install')
 assert.match(installer, /refusing destructive install without --yes/)
 assert.match(installer, /grub-install --target=i386-pc/)
 assert.match(installer, /grub-install --target=x86_64-efi/)
+assert.match(installer, /127\.0\.0\.1 localhost/)
+assert.match(installer, /127\.0\.1\.1 taichios/)
 const firstBoot = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-first-boot')
 assert.match(firstBoot, /\/home\/taichi\/.dsh/)
 assert.match(firstBoot, /\/home\/creator\/.dsh/)

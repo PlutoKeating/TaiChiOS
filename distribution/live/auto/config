@@ -49,5 +49,5 @@ lb config noauto \
   --iso-application "TaiChiOS 0.1 Live" \
   --iso-publisher "TaiChiOS Project" \
   --iso-volume TAICHIOS_01 \
-  --bootappend-live "boot=live components hostname=taichios username=taichi locales=zh_CN.UTF-8,en_US.UTF-8 keyboard-layouts=us console=tty0 console=ttyS0,115200n8" \
+  --bootappend-live "boot=live components hostname=taichios username=taichi locales=zh_CN.UTF-8,en_US.UTF-8 keyboard-layouts=us console=ttyS0,115200n8 console=tty0" \
   "$@"

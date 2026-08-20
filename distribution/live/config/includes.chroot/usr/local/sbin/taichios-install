@@ -65,6 +65,10 @@ UUID=$ROOT_UUID / ext4 defaults 0 1
 UUID=$EFI_UUID /boot/efi vfat umask=0077 0 1
 EOF
 printf '%s\n' taichios > "$TARGET_ROOT/etc/hostname"
+cat > "$TARGET_ROOT/etc/hosts" <<EOF
+127.0.0.1 localhost
+127.0.1.1 taichios
+EOF
 rm -f "$TARGET_ROOT/etc/systemd/system/multi-user.target.wants/taichios-boot-ready.service"
 
 mount --rbind /dev "$TARGET_ROOT/dev"
