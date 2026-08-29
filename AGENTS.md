@@ -1,175 +1,142 @@
-# AGENT.md
+# AGENTS.md
 
-给专业 Agent 的开发规范。本文件约束所有由 AI Agent 执行的项目开发、整理、修复、文档和交付工作。
+TaiChiOS 是一个可启动、可安装、可恢复的 Debian 衍生操作系统，不是单一应用程序。本文件约束 AI Agent 在本仓库内进行设计、实现、构建、验证、文档和交付时的工作方式。
 
----
+## 1. 开工前必须建立项目上下文
 
-## 1. 开工前强制阅读流程
-
-每一个用户需求开始操刀前，Agent 必须先阅读并理解项目文档。没有完成本节阅读，不得开始修改文件。
-
-### 1.1 必读根目录文档
-
-每次需求开始前必须阅读：
+每个需求开始前必须阅读：
 
 - `README.md`
-- `docs/ARCHITECTURE.md`
-- `docs/API.md`
+- `CONTRIBUTING.md`
+- `docs/constitution.md`
+- `docs/architecture/overview.md`
+- `docs/architecture/repository-layout.md`
+- `docs/roadmap.md`
 
-如任务明显涉及启动、环境、部署或本地运行，还必须阅读：
+涉及领域术语、身份、权限、Provider、Change Set 或 Recovery 时，还必须阅读：
 
-- `docs/QUICK_START.md`（若存在）
+- `CONTEXT.md`
+- `docs/security/threat-model.md`
+- `docs/security/trust-and-autonomy.md`
+- 相关 ADR
 
-### 1.2 必读模块文档
+涉及版本、分支、发布、上游或供应链时，还必须阅读：
 
-如果任务涉及某个二级核心模块，Agent 必须阅读该模块目录文档，以 `**/docs/README.md` 和 `**/docs/ARCHITECTURE.md` 为主，例如：
+- `docs/releases/version-flow.md`
+- `docs/releases/compatibility.md`
+- `docs/upstreams.md`
+- 相关 release notes、lockfile、来源清单和许可证文件
 
-- 前端任务：阅读 `**/frontend/docs/README.md`、`**/frontend/docs/ARCHITECTURE.md`
-- 后端任务：阅读 `**/backend/docs/README.md`、`**/backend/docs/ARCHITECTURE.md`
-- 其他任务同理
+随后按受影响的系统层阅读其 README、入口、配置、测试和构建脚本：
 
-如任务涉及模块启动、环境变量、脚本或部署，还必须阅读该模块的：
+- 启动、镜像、安装、GRUB、Recovery：`distribution/**`、`tests/boot`、`tests/install`、`tests/recovery`
+- Harness、Cordis、Bundle、Profile：`distribution/runtime`、`vendor/cordis`、`bundles/**`、`profiles/**`、`tests/compatibility`
+- 系统入口与监督：`apps/**` 及对应 systemd unit、镜像 hook 和验收脚本
+- 身份、策略、Provider、Secret、审计、更新：`packages/**`、`schemas/**`、`tests/security`、`tests/integration`
+- 网站：`website/README.md`、`website/docs/RESPONSIVE_STANDARD.md`、`website/design-system/taichios/MASTER.md`
 
-- `**/docs/QUICK_START.md`（若存在）
-- `**/.env.example`（若存在）
-- 相关脚本
+仓库文档可能滞后于源码。出现冲突时必须先说明冲突，以当前源码、配置、可执行测试和用户最新要求为准，并同步修正文档。不得凭通用 Web 应用经验替代本项目的操作系统约束。
 
-如任务涉及容器化部署，还必须阅读：
+## 2. 把变更视为操作系统变更
 
-- `**/Dockerfile`
-- `**/docker-compose.yml`
-- `**/.dockerignore`
+开始实现前必须明确本次改动影响哪些边界：
 
-### 1.3 阅读后的执行要求
+- Debian 软件包、固定快照和可复现构建输入
+- BIOS/UEFI、GRUB、内核参数、initramfs、systemd 和控制台
+- Live 环境、安装器、已安装系统、首次启动和升级迁移
+- Human User、Working Agent、Service Principal、Unix 用户和进程隔离
+- Cordis 组合边界、Harness、Bundle、Profile 和 DSH 插件兼容性
+- Provider、凭证、权限、审计、资源预算和外部网络
+- Change Set、Rollback Point、Previous 启动项和独立 Recovery Environment
+- 发布镜像、源码对应物、包清单、摘要、attestation 和许可证
 
-Agent 必须把文档中确认的项目结构、API 约定、模块边界、环境变量和已有工作流作为实现约束。不得凭记忆、猜测或通用经验覆盖本项目文档。
+任何系统级改动都必须说明成功路径、失败路径和恢复路径。能在仓库测试中运行不代表能在 Live 镜像、安装后系统或 Recovery 中运行；逻辑 Context 隔离也不代表 Unix 或沙箱安全隔离。
 
-与最新的实际源码/配置/目录树结构相比，**文档缺失、过时或互相矛盾时有发生**，一切信息必须以最新的实际现有代码内容为准，如遇此类情况，Agent 必须先说明冲突，再基于当前代码和用户最新要求做最小必要变更。
+## 3. 实现原则
 
----
+- 只修改与任务直接相关的边界，不做无关重构。
+- 优先实现可验收的纵向闭环，不添加只会报告成功的占位命令。
+- 优先使用 TaiChiOS 插件、Bundle、Profile 或适配器；修改 Cordis、Harness 或 Debian 上游必须说明必要性、来源、补丁和退出策略。
+- 稳定 wire format 以 `schemas/` 为源，TypeScript 契约位于 `packages/contracts/`；实现不得让两者无声分叉。
+- 模型调用必须经过模型中立的 Provider 契约；凭证不得进入普通 Profile、环境示例、日志、Session、审计载荷或镜像。
+- `--yolo`、`--yes` 和非交互模式只能改变确认行为，不能伪造身份或取得调用主体没有的权限。
+- 社区插件是第三方代码。发现来源、信任分级、授权和执行隔离是不同阶段，不能用 Stars、下载量或目录收录代替安全判断。
+- 不把真实密钥、私有地址、个人路径、构建缓存、依赖目录、虚拟磁盘、ISO 或本地数据库提交到仓库。
 
-## 2. 核心职责
+## 4. 构建与依赖边界
 
-Agent 的目标不是“尽快改完”，而是在本地完成可追踪、可回滚、可审查的工程变更。
+包管理器必须遵循现有所有权边界：
 
-必须做到：
+- Debian 系统包由 `apt` 和 live-build 配置管理。
+- `distribution/runtime` 使用 pnpm，保持 DSH Profile/插件生态兼容。
+- 根 Yarn 4 工作区只用于 TaiChiOS/Cordis 源码构建、Yakumo 和仓库测试。
+- `website` 是独立 npm 工程。
 
-- 先理解当前仓库结构、现有代码风格、已有文档和用户的最新要求。
-- 只修改与任务直接相关的文件，不做无关重构。
-- 每次改动后进行必要的本地验证，例如结构检查、类型检查、测试、构建或人工可读核对。
-- 在回复用户时说明做了什么、哪些检查通过、哪些检查无法执行以及原因。
+只有实际改变依赖、构建输入或发布装配时，才更新对应 manifest、lockfile、快照、许可证、Docker/CI 或部署配置。不得为了满足形式要求改动无关依赖文件。
 
----
+上游版本必须固定到不可变版本、提交或 Debian Snapshot，并记录完整性、许可证、兼容性和更新流程。引入原生扩展、安装脚本或新网络来源时必须重新评估供应链和权限影响。
 
-## 3. 所有工作或修改必须要与本地 Git 仓库同步
+## 5. 安全执行构建和验收
 
-### 3.1 必须本地提交所有变更
+- 执行前检查当前分支、工作区和 ignored/untracked 状态，不覆盖或删除用户已有改动。
+- `taichios-install`、分区、格式化、GRUB 安装等破坏性路径只能在明确创建的空白测试磁盘或隔离虚拟机内执行；不得把宿主磁盘、工作区根目录或不明设备作为目标。
+- 需要 root 的 live-build、mount、loop device、namespace 或清理操作必须先确认脚本的精确目标；不得用宽泛路径或未解析变量执行递归删除。
+- 测试生成的 ISO、chroot、cache、虚拟磁盘、覆盖率和构建目录必须位于仓库约定位置并保持 ignored；完成后检查是否产生意外文件。
+- 网络不可用、镜像源不可用或宿主禁止 user namespace 时，应报告真实失败，不得把跳过测试伪装成通过。
 
-对于任何本地文件的修改或增删，**必须全部进行git仓库同步检查**，理解是否应当将新增文件添加到gitignore/dockerignore，或者添加到commit
+## 6. 分层验证要求
 
-```bash
-git diff 
-git add <changed-files>
-git commit -m "<clear local commit message>"
-```
+验证必须与风险成比例，并从便宜检查逐步升级：
 
-执行原则：
+1. 语法、格式、schema、静态检查和相关单元测试。
+2. 相关包的类型检查、构建和集成测试。
+3. Cordis/Harness/DSH 变更执行固定来源与离线 compatibility smoke。
+4. 镜像或启动链变更执行 live-build 定义检查，并在需要时构建真实 ISO。
+5. 启动、安装或 Recovery 变更使用同一候选镜像完成 BIOS 与 UEFI QEMU 验收；安装测试必须移除 ISO 后从磁盘启动。
+6. 发布变更验证二进制 ISO、对应源码 ISO、manifest、SHA-256、metadata、attestation 和发布失败行为。
+7. 网站变更在 `website/` 执行 `npm run check`，并按响应式规范检查中英文、键盘、缩放和目标视口。
 
-- 一个逻辑变更一个提交。
-- 文档整理、结构调整、功能修改、修复问题应尽量分开提交。
-- 提交信息必须说明真实意图，不允许使用 `update`、`fix`、`misc` 这类无法审查的消息。
-- 提交前必须检查变更范围，避免把 `.env`、构建产物、依赖目录、缓存、本地数据库等内容纳入提交。
-- 如果当前环境缺少 Git 命令，应明确告知用户，并继续保证文件变更本身可审查。
+不得用源码文本匹配代替本应执行的系统行为验收。若因权限、硬件、网络或时间无法运行某一级验证，必须明确列出未验证范围及其风险。
 
-### 3.2 永远禁止任何 untracked 文件存在
+## 7. 文档同步
 
-对于任何含有文件改动的工作，必须在工作完成后**立即检查git status**
-必须确保不存在“untracked files”或“uncommited且not-ignored files”
+修改后更新所有被改变的公开契约和操作说明，但不机械改动无关文档：
 
-你需要思考预期之外的untracked files的来源，典型的来源是运行configure类操作后自动生成的config文件，需要你自行判断是否添加到ignore或commit
+- 架构或模块边界：架构文档、ADR、模块 README
+- 命令、环境、构建和验收：开发文档、相关 README、脚本帮助
+- 版本、兼容性和发布行为：compatibility、version flow、release notes、machine-readable metadata
+- 安全、权限、秘密或恢复行为：threat model、trust/autonomy、Recovery 文档
+- 稳定公共契约：按项目成熟度同时维护中文和英文说明
 
-如果存在 **非常确定与你先前工作完全无关的文件改动** ，则需要在其他工作全部完成后的最后询问用户如何后续处理
+文档不得提前宣称尚未经过对应验收的能力已经完成。
 
-### 3.3 Agent 高效且谨慎的 push 原则
+## 8. Git、分支和远程操作
 
-为方便开发与运维，Agent 可以执行push工作，但 **需要遵守以下的 push 规则**
-
-其一，Agent 可以对 **非 main 分支（或：非特定的生产分支）** 执行远程推送命令，包括但不限于：
-
-```bash
-git push -u xxx <feature-branch>
-```
-
-其二，Agent 可以 **在经过用户当下最新的显式授权时（该授权可能在附近的上下文中提出，此时无需询问）** 对 **main 分支（或：特定的生产分支）** 执行远程推送命令，包括但不限于：
-
-```bash
-git push
-git push -u xxx main
-```
-
-其三，Agent 严令禁止在 **未二次确认授权时** 执行任何破坏性的远程推送命令，包括但不限于：
-
-```bash
-git push --force
-git push --force-with-lease
-```
-
-原因：
-
-- 远程分支会影响多人协作和发布流水线。
-- 推送可能触发 CI/CD、部署、合并规则或生产流程。
-- 远程发布权必须由人类开发者或项目维护者控制。
-
-Agent 在本地完成 commit后，是否 push、何时 push、push 到哪个远程分支，必须由 Human 决定并执行。
-
-再次强调，该 Human 授权在不清晰时需要立即停止工作并询问，在授权清晰时无需询问，直接执行，执行后需要详细汇报 push 工作的细节和涉及范围
-
----
-
-## 4. 分支工作流
-
-本项目采用面向多人协作的标准环境流：
+项目分支流以实际版本文档为准：
 
 ```text
-personal feature branch -> staging branch -> production branch
+feature/* → next → staging → main
+                N+2      N+1      N
 ```
 
-Agent 必须默认理解以下含义：
+- 开发和修复默认在 `feature/*`、`fix/*` 或 `docs/*` 分支完成。
+- `next` 是后续开发集成线，`staging` 是候选发布线，`main` 是当前受支持及打标签的发布线。
+- 一个逻辑变更一个本地提交；提交信息必须描述真实意图。
+- 修改前后运行 `git status` 和 `git diff`，只暂存本任务文件。
+- Agent 自己产生的文件必须提交、加入正确的 ignore，或安全清理；不得擅自删除、覆盖或提交用户已有的无关 untracked/modified 文件。若无法区分归属，应停止并询问。
+- 只读调查不要求制造提交；任何仓库文件修改都必须形成可审查的本地提交。
+- 未经用户当前明确授权，不得 push、创建远程分支、合并 PR、修改 issue/PR、创建 release 或触发部署。
+- 即使得到普通 push/merge 授权，也不得自行向 `staging` 或 `main` 推送或合并；必须获得对目标分支的明确授权。
+- force push、重写共享历史、替换已发布制品或删除远程引用必须再次单独确认。
+- promotion 必须移动已验证的同一提交，不能从无关分支状态重新构造相同版本。
 
-- `feature/<name>` 或个人特性分支：开发和修复的工作区。
-- `staging`：集成验证分支，对应预生产或测试环境。
-- `production`：生产发布分支，只接受已经验证并批准的变更。
+## 9. 完成交付
 
-Agent 的工作边界：
+结束前必须：
 
-- 可以在当前本地分支上修改、暂存、提交。
-- 不得自行把变更合并到 `staging` 或 `production`。
-- 不得自行创建远程分支或推送远程。
-- 如果用户要求涉及 `staging` 或 `production`，必须先说明风险，并只在本地准备变更。
+- 检查 `git diff --check`、`git status` 和提交边界。
+- 确认没有意外未跟踪文件、凭证、缓存、构建产物或真实磁盘镜像进入提交。
+- 列出实际修改、验证结果、未执行检查、已知限制、迁移/回滚影响和本地提交。
+- 如执行了 GitHub、远程分支、发布或部署操作，逐项说明对象、结果和触发的 CI/CD 范围。
 
----
-
-## 5. ！！！本地开发规范
-
-！！！修改前：
-
-- 完成“开工前强制阅读流程”。
-- 查看相关配置文件、入口文件、类型定义和调用链。
-- 确认任务范围，避免误改其他模块。
-- 检查当前工作区是否已有用户未提交改动，不得回滚不属于自己的改动。
-
-！！！修改中：
-
-- 保持改动小而清晰。
-- 复用现有模式和依赖，不轻易引入新框架。
-- 不把密钥、令牌、私有地址、个人机器路径写入仓库文档或源码。
-- 不提交 `.env` 的真实内容，只维护 `.env.example` 模板。
-
-！！！修改后：
-
-- 执行与改动匹配的验证。
-- 检查目录结构是否符合项目约定。
-- **必须进行依赖列表文件与编译/部署等配置文件或脚本的更新**，严格遵循当前代码内容，不要缺失或包含旧内容
-- **必须进行文档更新**，文档范围为全局文档与你修改涉及模块（前端/后端/开发者前端）的修改，严格按照你的代码修改与当前最新的代码内容更新文档，不要缺失或包含旧内容
-- **必须进行git仓库同步**，本地 `git add` 和 `git commit`，保持审查边界清晰。
-- 回复用户时列出文件、验证结果和未完成风险。
+完成意味着交付了与改动层级匹配的证据，而不只是源码已经写完。
