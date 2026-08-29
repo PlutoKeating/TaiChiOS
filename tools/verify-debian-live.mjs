@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { accessSync, constants, existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,6 +20,7 @@ const liveGrub = read('distribution/live/config/bootloaders/grub-pc/config.cfg')
 const recoveryGrub = read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery')
 const liveEnableHook = read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot')
 const bootReady = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-boot-ready')
+const changeTest = resolve(workspace, 'tools/test-change-manager.sh')
 
 assert.equal(lock.schemaVersion, 1)
 assert.equal(lock.distribution, 'Debian GNU/Linux')
@@ -100,6 +102,9 @@ assert.doesNotMatch(harnessUnit, /^Requires=taichios-mock-provider\.service$/m)
 for (const executable of ['distribution/live/auto/config', 'distribution/live/auto/build', 'distribution/live/auto/clean', 'distribution/live/auto/stage-runtime', 'tools/install-live-build.sh', 'tools/test-live-boot.sh', 'tools/test-installed-system.sh']) {
   accessSync(resolve(workspace, executable), constants.X_OK)
 }
+
+accessSync(changeTest, constants.X_OK)
+execFileSync(changeTest, { cwd: workspace, stdio: 'inherit' })
 
 const artifact = resolve(workspace, 'artifacts/live/taichios-0.1-amd64.hybrid.iso')
 const checksum = `${artifact}.sha256`

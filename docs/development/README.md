@@ -11,6 +11,7 @@ yarn build
 yarn test
 yarn check:contracts
 yarn test:control-plane
+yarn test:change
 ```
 
 ## Planned system checks
@@ -26,6 +27,8 @@ build:live            reproducible x86_64 Live/install image
 
 Do not add placeholder commands that report success without performing their named check. A script enters the root task surface only when its contract is executable.
 
-`check:contracts` validates the control-plane JSON Schema with real accepted and rejected payloads and checks that its principal/mode vocabulary matches the TypeScript contracts. `test:control-plane` exercises organization ownership, delegation, Provider routing, confirmation semantics, scoped Secret grants and audit attribution through public package interfaces. These are repository-level 0.2 reference contracts; they are not yet installed into the 0.1 Live image.
+`check:contracts` validates the control-plane and Change Set JSON Schemas with real accepted and rejected payloads and checks that their vocabulary matches the TypeScript contracts. `test:control-plane` exercises organization ownership, delegation, Provider routing, confirmation semantics, scoped Secret grants and audit attribution through public package interfaces. These are repository-level 0.2 reference contracts; they are not yet installed into the 0.1 Live image.
+
+`test:change` executes the same managed-file Change Set command shipped in the Live image against an isolated temporary system root. It proves Dry Run, non-interactive confirmation, staged activation, verification, commit, rollback, rollback-failed and acting-principal behavior. `compat:live` invokes this behavior gate before accepting the image definition.
 
 The GitHub Actions build also installs the host tools required by the runtime and Live-image gates. Its apt operations use bounded retries and connection timeouts so an unavailable runner mirror fails promptly instead of occupying the pipeline indefinitely.

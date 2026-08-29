@@ -80,6 +80,8 @@ propose
 
 用户显式覆盖可以减少审批或允许高风险影响，但 Change Set 仍应诚实记录发生了什么。可记录性与是否阻止执行是两件不同的事。
 
+`schemas/change-set.schema.json` 固定所有变更通道共享的 envelope 与状态词汇。0.1 镜像中的 `taichios-change` 已将这个契约落到受管文件：候选文件先进入独立 stage，激活后核对摘要，只有验证成功才 committed；回滚点缺失或恢复失败会进入 `rollback-failed`，不会伪装成成功。Profile、插件和系统更新 adapter 后续必须复用同一语义。
+
 ## 上游边界
 
 - Debian：操作系统基础、软件包和安全更新来源。

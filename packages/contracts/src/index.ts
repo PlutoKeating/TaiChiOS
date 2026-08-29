@@ -4,6 +4,20 @@ export type PrincipalKind = typeof principalKinds[number]
 export const operatingModes = ['guarded', 'creator', 'yolo'] as const
 export type OperatingMode = typeof operatingModes[number]
 
+export const changeStates = [
+  'proposed',
+  'resolved',
+  'authorized',
+  'staged',
+  'activated',
+  'verified',
+  'committed',
+  'failed',
+  'rolled-back',
+  'rollback-failed',
+] as const
+export type ChangeState = typeof changeStates[number]
+
 export interface Organization {
   id: string
   ownerId: string
@@ -93,4 +107,28 @@ export interface AuditRecord {
   mode: OperatingMode
   reason?: string
   timestamp: string
+}
+
+export interface ChangeSet {
+  id: string
+  kind: 'managed-file' | 'profile' | 'plugin' | 'system-update'
+  organizationId: string
+  actorId: string
+  mode: OperatingMode
+  state: ChangeState
+  source: {
+    identity: string
+    sha256: string
+  }
+  effects: Array<{
+    operation: 'create' | 'replace' | 'remove'
+    path: string
+    sha256?: string
+  }>
+  verification: string[]
+  rollback?: {
+    kind: 'file-snapshot' | 'profile-link' | 'deployment'
+    reference: string
+  }
+  failureReason?: string
 }

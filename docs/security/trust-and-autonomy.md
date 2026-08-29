@@ -28,6 +28,8 @@ TaiChiOS command surfaces should converge on shared flags:
 
 Individual tools must not invent contradictory meanings. `--yolo` must be visible in audit output and must never claim a Dry Run when persistent effects occurred.
 
+The installed managed-file implementation enforces this contract: `--non-interactive` without `--yes` or `--yolo` fails, Dry Run rejects apply confirmation and writes no target or Change Set state, and an unprivileged Unix caller cannot select a different `--as` principal. Root may select an authenticated acting principal for system integration, but the selection remains recorded and does not itself create a capability grant.
+
 ## Plugin trust tiers
 
 | Tier | Provenance | Default execution |
@@ -41,4 +43,3 @@ Individual tools must not invent contradictory meanings. `--yolo` must be visibl
 ## Autonomous extension
 
 An Agent may discover plugins through DSH community sources, compare candidates, inspect source and propose installation. Policy determines whether it may proceed automatically. Installation always produces a Change Set containing source identity, version, permissions, dependency changes, scripts/native code, expected filesystem changes, verification and rollback information.
-

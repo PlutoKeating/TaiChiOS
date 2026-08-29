@@ -1,71 +1,212 @@
 #!/bin/sh
 set -eu
 
-STATE_DIR=/var/lib/taichios/changes
 ACTION=${1:-}
 shift || true
+ROOT=
+ACTOR="unix:$(id -un)"
+MODE=
+
+normalize_root() {
+  test -n "$ROOT" || return 0
+  case "$ROOT" in /*) ;; *) echo "managed root must be absolute: $ROOT" >&2; exit 2;; esac
+  test -d "$ROOT" || { echo "managed root does not exist: $ROOT" >&2; exit 2; }
+  ROOT=$(CDPATH= cd -- "$ROOT" && pwd -P)
+  test "$ROOT" != / || ROOT=
+}
+
+validate_id() {
+  case "$1" in *[!A-Za-z0-9._-]*|'') echo "invalid change id: $1" >&2; exit 2;; esac
+}
+
+validate_target() {
+  case "$1" in /etc/taichios/*|/opt/taichios/*) ;; *) echo "target is outside managed roots: $1" >&2; exit 2;; esac
+}
+
+select_actor() {
+  REQUESTED_ACTOR=$1
+  case "$REQUESTED_ACTOR" in *[!A-Za-z0-9:._-]*|'') echo "invalid acting principal" >&2; exit 2;; esac
+  if test "$REQUESTED_ACTOR" != "$ACTOR" && test "$(id -u)" -ne 0; then
+    echo "only root may select another authenticated acting principal" >&2
+    exit 1
+  fi
+  ACTOR=$REQUESTED_ACTOR
+}
+
+set_paths() {
+  STATE_DIR="${ROOT}/var/lib/taichios/changes"
+}
+
+record_state() {
+  NEXT_STATE=$1
+  REASON=${2:-}
+  printf '%s\n' "$NEXT_STATE" > "$CHANGE_DIR/state"
+  printf 'timestamp=%s state=%s actor=%s mode=%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$NEXT_STATE" "$ACTOR" "$MODE" >> "$CHANGE_DIR/history"
+  if test -n "$REASON"; then printf ' reason=%s' "$REASON" >> "$CHANGE_DIR/history"; fi
+  printf '\n' >> "$CHANGE_DIR/history"
+}
+
+rollback_change() {
+  TARGET=$(cat "$CHANGE_DIR/target")
+  validate_target "$TARGET"
+  ACTUAL_TARGET="${ROOT}${TARGET}"
+  ROLLBACK_TARGET="$(dirname "$ACTUAL_TARGET")/.taichios-$CHANGE_ID.rollback"
+  if test -f "$CHANGE_DIR/before-present"; then
+    if ! test -f "$CHANGE_DIR/before"; then
+      record_state rollback-failed missing-rollback-point
+      return 1
+    fi
+    if ! cp -a "$CHANGE_DIR/before" "$ROLLBACK_TARGET" || ! mv -f "$ROLLBACK_TARGET" "$ACTUAL_TARGET"; then
+      rm -f -- "$ROLLBACK_TARGET"
+      record_state rollback-failed restore-failed
+      return 1
+    fi
+  elif test -f "$CHANGE_DIR/created"; then
+    if ! rm -f -- "$ACTUAL_TARGET"; then
+      record_state rollback-failed remove-created-target-failed
+      return 1
+    fi
+  else
+    record_state rollback-failed missing-rollback-metadata
+    return 1
+  fi
+  record_state rolled-back
+}
 
 case "$ACTION" in
   apply)
     CHANGE_ID=
     SOURCE=
     TARGET=
-    MODE=
-    ACTOR=root
+    DRY_RUN=false
+    NON_INTERACTIVE=false
+    CONFIRMATION=
     while test "$#" -gt 0; do
       case "$1" in
+        --root) ROOT=${2:?missing managed root}; shift 2 ;;
         --id) CHANGE_ID=${2:?missing id}; shift 2 ;;
         --source) SOURCE=${2:?missing source}; shift 2 ;;
         --target) TARGET=${2:?missing target}; shift 2 ;;
-        --dry-run) MODE=dry-run; shift ;;
-        --non-interactive) shift ;;
-        --yes) MODE=apply; shift ;;
-        --yolo) MODE=yolo; shift ;;
-        --as) ACTOR=${2:?missing principal}; shift 2 ;;
+        --dry-run) DRY_RUN=true; shift ;;
+        --non-interactive) NON_INTERACTIVE=true; shift ;;
+        --yes) test -z "$CONFIRMATION" || { echo 'confirmation options are mutually exclusive' >&2; exit 2; }; CONFIRMATION=yes; shift ;;
+        --yolo) test -z "$CONFIRMATION" || { echo 'confirmation options are mutually exclusive' >&2; exit 2; }; CONFIRMATION=yolo; shift ;;
+        --as) select_actor "${2:?missing principal}"; shift 2 ;;
         *) echo "unknown option: $1" >&2; exit 2 ;;
       esac
     done
-    test -n "$CHANGE_ID" && test -n "$SOURCE" && test -n "$TARGET" && test -n "$MODE" || exit 2
-    case "$CHANGE_ID" in *[!A-Za-z0-9._-]*|'') echo "invalid change id" >&2; exit 2;; esac
-    case "$TARGET" in /etc/taichios/*|/opt/taichios/*) ;; *) echo "target is outside managed roots" >&2; exit 2;; esac
-    test -f "$SOURCE"
-    test ! -d "$TARGET" || { echo "managed target must be a file" >&2; exit 2; }
+    normalize_root
+    set_paths
+    test -n "$CHANGE_ID" && test -n "$SOURCE" && test -n "$TARGET" || {
+      echo 'usage: taichios-change apply [--root ROOT] --id ID --source FILE --target PATH (--dry-run|--yes|--yolo) [--non-interactive] [--as PRINCIPAL]' >&2
+      exit 2
+    }
+    validate_id "$CHANGE_ID"
+    validate_target "$TARGET"
+    test -f "$SOURCE" || { echo "source is not a file: $SOURCE" >&2; exit 2; }
+    ACTUAL_TARGET="${ROOT}${TARGET}"
+    test ! -d "$ACTUAL_TARGET" || { echo 'managed target must be a file' >&2; exit 2; }
     SOURCE_SHA256=$(sha256sum "$SOURCE" | cut -d' ' -f1)
-    printf 'change=%s\nsource=%s\nsourceSha256=%s\ntarget=%s\nmode=%s\nactor=%s\n' "$CHANGE_ID" "$SOURCE" "$SOURCE_SHA256" "$TARGET" "$MODE" "$ACTOR"
-    test "$MODE" != dry-run || exit 0
+
+    if test "$DRY_RUN" = true; then
+      test -z "$CONFIRMATION" || { echo 'dry-run cannot accept apply confirmation' >&2; exit 2; }
+      printf 'change=%s\nsource=%s\nsourceSha256=%s\ntarget=%s\nmode=dry-run\nactor=%s\nstate=dry-run\n' \
+        "$CHANGE_ID" "$SOURCE" "$SOURCE_SHA256" "$TARGET" "$ACTOR"
+      exit 0
+    fi
+
+    if test -z "$CONFIRMATION"; then
+      test "$NON_INTERACTIVE" = false || { echo 'non-interactive apply requires --yes or --yolo' >&2; exit 2; }
+      printf 'Apply Change Set %s to %s? [y/N] ' "$CHANGE_ID" "$TARGET" > /dev/tty
+      read -r ANSWER < /dev/tty
+      case "$ANSWER" in y|Y|yes|YES) CONFIRMATION=yes ;; *) echo 'change not confirmed' >&2; exit 1;; esac
+    fi
+    MODE=$([ "$CONFIRMATION" = yolo ] && printf yolo || printf guarded)
+    if test -z "$ROOT" && test "$(id -u)" -ne 0; then
+      echo 'live-system changes require root' >&2
+      exit 1
+    fi
+
     CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
     test ! -e "$CHANGE_DIR" || { echo "change already exists: $CHANGE_ID" >&2; exit 1; }
-    install -d -m 0750 "$CHANGE_DIR" "$(dirname "$TARGET")"
-    if test -e "$TARGET"; then cp -a "$TARGET" "$CHANGE_DIR/before"; else : > "$CHANGE_DIR/created"; fi
+    install -d -m 0750 "$CHANGE_DIR" "$(dirname "$ACTUAL_TARGET")"
     printf '%s\n' "$TARGET" > "$CHANGE_DIR/target"
     printf 'mode=%s\nactor=%s\nsourceSha256=%s\n' "$MODE" "$ACTOR" "$SOURCE_SHA256" > "$CHANGE_DIR/audit"
-    STAGED_TARGET="$(dirname "$TARGET")/.taichios-$CHANGE_ID.staged"
-    test ! -e "$STAGED_TARGET"
-    cp -a "$SOURCE" "$STAGED_TARGET"
-    mv -f "$STAGED_TARGET" "$TARGET"
+    record_state proposed
+    record_state resolved
+    record_state authorized
+
+    if test -e "$ACTUAL_TARGET"; then
+      cp -a "$ACTUAL_TARGET" "$CHANGE_DIR/before"
+      : > "$CHANGE_DIR/before-present"
+    else
+      : > "$CHANGE_DIR/created"
+    fi
+    cp -a "$SOURCE" "$CHANGE_DIR/candidate"
+    record_state staged
+
+    STAGED_TARGET="$(dirname "$ACTUAL_TARGET")/.taichios-$CHANGE_ID.staged"
+    test ! -e "$STAGED_TARGET" || { record_state failed stale-staged-target; exit 1; }
+    cp -a "$CHANGE_DIR/candidate" "$STAGED_TARGET"
+    mv -f "$STAGED_TARGET" "$ACTUAL_TARGET"
+    record_state activated
+
+    TARGET_SHA256=$(sha256sum "$ACTUAL_TARGET" | cut -d' ' -f1)
+    if test "$TARGET_SHA256" != "$SOURCE_SHA256"; then
+      record_state failed verification-failed
+      rollback_change || true
+      exit 1
+    fi
+    record_state verified
+    record_state committed
     printf '%s\n' "$CHANGE_ID" > "$STATE_DIR/last"
     ;;
+
   rollback)
-    CHANGE_ID=${1:-}
+    CHANGE_ID=
+    while test "$#" -gt 0; do
+      case "$1" in
+        --root) ROOT=${2:?missing managed root}; shift 2 ;;
+        --last) CHANGE_ID=--last; shift ;;
+        --as) select_actor "${2:?missing principal}"; shift 2 ;;
+        -*) echo "unknown option: $1" >&2; exit 2 ;;
+        *) test -z "$CHANGE_ID" || { echo 'multiple change ids supplied' >&2; exit 2; }; CHANGE_ID=$1; shift ;;
+      esac
+    done
+    normalize_root
+    set_paths
     if test "$CHANGE_ID" = --last; then
       test -f "$STATE_DIR/last" || exit 0
       CHANGE_ID=$(cat "$STATE_DIR/last")
     fi
-    test -n "$CHANGE_ID" || { echo "usage: taichios-change rollback ID|--last" >&2; exit 2; }
+    test -n "$CHANGE_ID" || { echo 'usage: taichios-change rollback [--root ROOT] ID|--last [--as PRINCIPAL]' >&2; exit 2; }
+    validate_id "$CHANGE_ID"
     CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
-    TARGET=$(cat "$CHANGE_DIR/target")
-    if test -e "$CHANGE_DIR/before"; then
-      STAGED_TARGET="$(dirname "$TARGET")/.taichios-$CHANGE_ID.rollback"
-      test ! -e "$STAGED_TARGET"
-      cp -a "$CHANGE_DIR/before" "$STAGED_TARGET"
-      mv -f "$STAGED_TARGET" "$TARGET"
-    else
-      rm -f "$TARGET"
-    fi
-    printf '%s\n' rolled-back > "$CHANGE_DIR/state"
+    test -d "$CHANGE_DIR" || { echo "change not found: $CHANGE_ID" >&2; exit 1; }
+    MODE=rollback
+    CURRENT_STATE=$(cat "$CHANGE_DIR/state")
+    test "$CURRENT_STATE" != rolled-back || exit 0
+    rollback_change
     ;;
+
+  status)
+    CHANGE_ID=
+    while test "$#" -gt 0; do
+      case "$1" in
+        --root) ROOT=${2:?missing managed root}; shift 2 ;;
+        -*) echo "unknown option: $1" >&2; exit 2 ;;
+        *) test -z "$CHANGE_ID" || { echo 'multiple change ids supplied' >&2; exit 2; }; CHANGE_ID=$1; shift ;;
+      esac
+    done
+    normalize_root
+    set_paths
+    test -n "$CHANGE_ID" || { echo 'usage: taichios-change status [--root ROOT] ID' >&2; exit 2; }
+    validate_id "$CHANGE_ID"
+    cat "$STATE_DIR/$CHANGE_ID/state"
+    ;;
+
   *)
-    echo "usage: taichios-change apply ... | rollback ID|--last" >&2
+    echo 'usage: taichios-change apply ... | rollback ... | status ...' >&2
     exit 2
     ;;
 esac

@@ -2,7 +2,8 @@ import Ajv from 'ajv'
 import { describe, expect, it } from 'vitest'
 
 import schema from '../../../schemas/control-plane.schema.json'
-import { operatingModes, principalKinds } from '../src/index.ts'
+import changeSetSchema from '../../../schemas/change-set.schema.json'
+import { changeStates, operatingModes, principalKinds } from '../src/index.ts'
 
 describe('control-plane wire contract', () => {
   const ajv = new Ajv({ allErrors: true })
@@ -38,5 +39,24 @@ describe('control-plane wire contract', () => {
       timestamp: '2026-08-30T00:00:00.000Z',
       credential: 'must-not-be-accepted',
     })).toBe(false)
+  })
+
+  it('requires committed Change Sets to declare verification and rollback', () => {
+    expect(changeSetSchema.properties.state.enum).toEqual(changeStates)
+    const validate = ajv.compile(changeSetSchema)
+    const changeSet = {
+      id: 'change:profile-update',
+      kind: 'profile',
+      organizationId: 'org:taichios',
+      actorId: 'agent:operator',
+      mode: 'guarded',
+      state: 'committed',
+      source: { identity: 'npm:example@1.0.0', sha256: 'a'.repeat(64) },
+      effects: [{ operation: 'replace', path: '/etc/taichios/example.conf' }],
+      verification: ['profile-smoke'],
+      rollback: { kind: 'file-snapshot', reference: 'change:profile-update/before' },
+    }
+    expect(validate(changeSet)).toBe(true)
+    expect(validate({ ...changeSet, verification: [], rollback: undefined })).toBe(false)
   })
 })
