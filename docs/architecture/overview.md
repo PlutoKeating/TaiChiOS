@@ -62,6 +62,8 @@ consumer → standard LLM contract → Provider Registry
 
 Provider Registry 必须支持增删改查、能力发现、模型元数据、健康状态、路由与预算。Secret Service 只向一次调用或受控执行环境提供必要凭证。
 
+仓库当前提供 0.2 的内存型参考闭环：`ProviderRegistry.invoke()` 在同一深模块接口内完成主体授权、确认判断、模型路由、单次 Secret Grant 兑换和审计归属。该闭环用于固定跨包契约和安全语义，尚未进入 0.1 Live 镜像；持久身份、加密 Secret 存储、健康/配额以及生产 Provider adapter 仍需后续安装系统集成。
+
 ## 变化事务
 
 ```text
@@ -87,4 +89,3 @@ propose
 - DSH community：插件发现与兼容生态。
 
 具体固定方式和补丁政策见[上游依赖](../upstreams.md)。
-

@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    { "path": "../audit" },
+    { "path": "../contracts" },
+    { "path": "../policy" },
+    { "path": "../secret-service" }
+  ]
+}
