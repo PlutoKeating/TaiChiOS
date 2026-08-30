@@ -56,8 +56,14 @@ mount "$ROOT_PART" "$TARGET_ROOT"
 MOUNTED=true
 mkdir -p "$TARGET_ROOT/boot/efi"
 mount "$EFI_PART" "$TARGET_ROOT/boot/efi"
-unsquashfs -f -d "$TARGET_ROOT" /run/live/medium/live/filesystem.squashfs
+echo TAICHIOS_INSTALL_STAGE=extract
+# Keep extraction comfortably inside the 2 GiB minimum supported installer VM.
+# Strict errors prevent a partially extracted root filesystem from progressing.
+unsquashfs -f -d "$TARGET_ROOT" -processors 1 -data-queue 128 -frag-queue 128 \
+  -strict-errors -no-progress \
+  /run/live/medium/live/filesystem.squashfs
 
+echo TAICHIOS_INSTALL_STAGE=configure
 ROOT_UUID=$(blkid -s UUID -o value "$ROOT_PART")
 EFI_UUID=$(blkid -s UUID -o value "$EFI_PART")
 cat > "$TARGET_ROOT/etc/fstab" <<EOF
@@ -92,7 +98,7 @@ taichios-prepare-user creator
 grub-install --target=i386-pc --recheck '$DISK'
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=TaiChiOS --removable --no-nvram --recheck
 update-grub
-systemctl enable taichios-first-boot.service taichios-mock-provider.service taichios-harness@taichi.service taichios-harness@creator.service taichios-previous-rollback.service getty@tty1.service serial-getty@ttyS0.service
+systemctl enable taichios-first-boot.service taichios-guardian.service taichios-mock-provider.service taichios-harness@taichi.service taichios-harness@creator.service taichios-previous-rollback.service getty@tty1.service serial-getty@ttyS0.service
 EOF
 
 install -d -m 0750 "$TARGET_ROOT/var/lib/taichios/deployments/initial" "$TARGET_ROOT/var/lib/taichios/changes"
@@ -100,4 +106,5 @@ printf '{"deployment":"initial","state":"known-good","rootUuid":"%s"}\n' "$ROOT_
 ln -s initial "$TARGET_ROOT/var/lib/taichios/deployments/current"
 ln -s initial "$TARGET_ROOT/var/lib/taichios/deployments/previous"
 sync
+echo TAICHIOS_INSTALL_STAGE=complete
 echo "TaiChiOS installed to $DISK"

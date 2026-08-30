@@ -20,6 +20,8 @@ corepack yarn test:install
 
 `tools/test-live-boot.sh` 分别以 SeaBIOS 和 OVMF 启动 ISO，并等待 tty1 Live Shell 行为标记。`tools/test-installed-system.sh` 还会向空盘安装、移除 ISO、从磁盘启动，确认 tty1 用户登录页，再进入独立 Recovery target。所有 QEMU 都不配置网卡。
 
+镜像内的 `taichios-change` 为 `/etc/taichios` 与 `/opt/taichios` 托管文件提供持久 Change Set 状态、候选激活、SHA-256 验证、Rollback Point 和显式 `rollback-failed`。`tools/test-change-manager.sh` 在隔离临时系统根执行同一脚本；`compat:live` 会运行该行为门禁。`--root` 可让 Recovery 操作明确挂载的离线系统根，不放宽逻辑目标目录。
+
 发布版本使用 `corepack yarn build:release`，一次配置并构建二进制 ISO 与对应的 `taichios-0.1-source.iso`，同时生成源码文件清单 `source.contents`；不要在它之后调用 `build:live`，后者会恢复日常构建配置。完成启动与安装验收后，`corepack yarn prepare:release --tag TAG --commit FULL_GIT_SHA` 会验证必需制品并生成 `release-metadata.json` 与覆盖所有发布文件的 `SHA256SUMS`。标签发布工作流自动执行完整路径、保存 CI 制品、生成 GitHub build-provenance attestation，并发布 GitHub Prerelease。
 
 English summary: the executable live-build project emits an amd64 hybrid ISO and package manifests. BIOS and UEFI QEMU tests gate the bootable claim.

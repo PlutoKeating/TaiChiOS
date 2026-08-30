@@ -3,5 +3,6 @@ Description=Announce TaiChiOS recovery readiness
 
 [Service]
 Type=oneshot
+ExecStartPre=/usr/local/sbin/taichios-recovery verify
 ExecStart=/bin/sh -c 'echo TAICHIOS_RECOVERY_READY > /dev/ttyS0; echo "Use sudo taichios-recovery to disable a profile or roll back the last managed change." > /dev/ttyS0'
 RemainAfterExit=yes

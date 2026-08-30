@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { accessSync, constants, existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,6 +20,8 @@ const liveGrub = read('distribution/live/config/bootloaders/grub-pc/config.cfg')
 const recoveryGrub = read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery')
 const liveEnableHook = read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot')
 const bootReady = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-boot-ready')
+const changeTest = resolve(workspace, 'tools/test-change-manager.sh')
+const recoveryTest = resolve(workspace, 'tools/test-guardian-recovery.sh')
 
 assert.equal(lock.schemaVersion, 1)
 assert.equal(lock.distribution, 'Debian GNU/Linux')
@@ -81,7 +84,14 @@ assert.equal(installTest.match(/-nic none/g)?.length, 3, 'every install acceptan
 assert.match(installTest, /TAICHIOS_INSTALLED_LOGIN_READY/, 'installed boot must reach the local login page')
 assert.match(read('distribution/live/config/includes.chroot/etc/grub.d/41_taichios_recovery'), /TaiChiOS Recovery/)
 const installer = read('distribution/live/config/includes.chroot/usr/local/sbin/taichios-install')
+const autoInstaller = read('distribution/live/config/includes.chroot/usr/local/sbin/taichios-auto-install')
+const autoInstallUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-auto-install.service')
 assert.match(installer, /refusing destructive install without --yes/)
+assert.match(installer, /unsquashfs .* -processors 1 -data-queue 128 -frag-queue 128/, 'installer extraction must use the queues supported by the pinned squashfs-tools version')
+assert.match(installer, /-strict-errors -no-progress/, 'installer extraction must reject partial roots')
+assert.match(autoInstaller, /TAICHIOS_INSTALL_FAILED status=/, 'unattended installation must expose failures over serial')
+assert.match(autoInstallUnit, /^TimeoutStartSec=infinity$/m, 'systemd must not terminate a valid slow installation')
+assert.match(installTest, /TAICHIOS_INSTALL_FAILED/, 'install acceptance must fail immediately on the serial failure marker')
 assert.match(installer, /grub-install --target=i386-pc/)
 assert.match(installer, /grub-install --target=x86_64-efi/)
 assert.match(installer, /127\.0\.0\.1 localhost/)
@@ -96,10 +106,26 @@ assert.match(firstBoot, /\/home\/creator\/.dsh/)
 const harnessUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-harness@.service')
 assert.match(harnessUnit, /^Wants=taichios-mock-provider\.service$/m)
 assert.doesNotMatch(harnessUnit, /^Requires=taichios-mock-provider\.service$/m)
+assert.match(harnessUnit, /^Type=notify$/m)
+assert.match(harnessUnit, /^Restart=on-failure$/m)
+assert.match(harnessUnit, /^WatchdogSec=45s$/m)
+const guardianUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-guardian.service')
+assert.match(guardianUnit, /^ConditionKernelCommandLine=!taichios\.install$/m, 'Guardian must not interpret the intentionally headless installer as a tty/Harness failure')
+assert.match(guardianUnit, /^Type=notify$/m)
+assert.match(guardianUnit, /^WatchdogSec=45s$/m)
+assert.match(read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot'), /systemctl enable taichios-guardian\.service/)
+assert.match(installer, /systemctl enable .*taichios-guardian\.service/)
+assert.match(read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-recovery-marker.service'), /ExecStartPre=\/usr\/local\/sbin\/taichios-recovery verify/)
+assert.match(read('distribution/live/config/hooks/live/0120-seal-recovery.hook.chroot'), /trusted-files\.sha256/)
 
 for (const executable of ['distribution/live/auto/config', 'distribution/live/auto/build', 'distribution/live/auto/clean', 'distribution/live/auto/stage-runtime', 'tools/install-live-build.sh', 'tools/test-live-boot.sh', 'tools/test-installed-system.sh']) {
   accessSync(resolve(workspace, executable), constants.X_OK)
 }
+
+accessSync(changeTest, constants.X_OK)
+execFileSync(changeTest, { cwd: workspace, stdio: 'inherit' })
+accessSync(recoveryTest, constants.X_OK)
+execFileSync(recoveryTest, { cwd: workspace, stdio: 'inherit' })
 
 const artifact = resolve(workspace, 'artifacts/live/taichios-0.1-amd64.hybrid.iso')
 const checksum = `${artifact}.sha256`

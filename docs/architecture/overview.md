@@ -40,6 +40,8 @@ UEFI/BIOS
 
 Guardian 位于普通插件树之外或拥有独立监督路径，因此 Harness/TUI 崩溃不等于系统不可恢复。其设计将参考成熟的心跳、safe profile 与进程重建模式，但不会直接复制其他项目实现。
 
+当前 Guardian 由独立 `taichios-guardian.service` 承载：systemd watchdog 监督 Guardian 本身，service state 与持续 heartbeat 监督每个 Harness supervisor，tty1 failed/inactive 时单独恢复 getty。root-only 请求目录提供 restart-harness、safe-profile 与 enter-recovery 控制；safe-profile 会隔离损坏的普通/第三方 Profile，可信控制由独立的 getty-based Recovery Profile 提供，事件写入独立持久 incident log。Recovery target 不依赖 Guardian、Harness 或普通 Profile，并在宣布 ready 前验证构建时封存的可信文件清单。
+
 ## 控制面与执行面
 
 控制面决定“谁可以请求什么、使用哪个 Provider、安装哪个插件、产生什么 Change Set”。执行面负责“在哪个 Unix 主体、进程或沙箱中实际执行”。二者通过明确协议连接，避免第三方插件因加载到主进程而绕过工具审批。
@@ -62,6 +64,8 @@ consumer → standard LLM contract → Provider Registry
 
 Provider Registry 必须支持增删改查、能力发现、模型元数据、健康状态、路由与预算。Secret Service 只向一次调用或受控执行环境提供必要凭证。
 
+仓库当前提供 0.2 的内存型参考闭环：`ProviderRegistry.invoke()` 在同一深模块接口内完成主体授权、确认判断、模型路由、单次 Secret Grant 兑换和审计归属。该闭环用于固定跨包契约和安全语义，尚未进入 0.1 Live 镜像；持久身份、加密 Secret 存储、健康/配额以及生产 Provider adapter 仍需后续安装系统集成。
+
 ## 变化事务
 
 ```text
@@ -78,6 +82,8 @@ propose
 
 用户显式覆盖可以减少审批或允许高风险影响，但 Change Set 仍应诚实记录发生了什么。可记录性与是否阻止执行是两件不同的事。
 
+`schemas/change-set.schema.json` 固定所有变更通道共享的 envelope 与状态词汇。0.1 镜像中的 `taichios-change` 已将这个契约落到受管文件，并以 `system-update` kind 覆盖 `/opt/taichios` 下的原子部署指针/清单：候选文件先进入独立 stage，激活后核对摘要，只有验证成功才 committed；回滚点缺失或恢复失败会进入 `rollback-failed`，不会伪装成成功。Profile、插件以及包管理器/多文件系统更新 adapter 后续必须复用同一语义，当前不得宣称已受保护。
+
 ## 上游边界
 
 - Debian：操作系统基础、软件包和安全更新来源。
@@ -87,4 +93,3 @@ propose
 - DSH community：插件发现与兼容生态。
 
 具体固定方式和补丁政策见[上游依赖](../upstreams.md)。
-

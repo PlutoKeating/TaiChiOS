@@ -5,10 +5,27 @@ ACCOUNT=${1:?missing account}
 USER_HOME=$(getent passwd "$ACCOUNT" | cut -d: -f6)
 test -n "$USER_HOME"
 install -d -m 0755 /run/taichios/harness
-runuser -u "$ACCOUNT" -- env \
-  DSH_HOME="$USER_HOME/.dsh" \
-  DEEPSEEK_API_KEY=taichios-offline \
-  DEEPSEEK_BASE_URL=http://127.0.0.1:11435/v1 \
-  /usr/local/bin/dsh --profile dsh-tui --dump-config > "/run/taichios/harness/$ACCOUNT.config"
-grep -q '@deepseek-harness-tui/dsh-tui' "/run/taichios/harness/$ACCOUNT.config"
+SAFE_MARKER="/var/lib/taichios/guardian/safe-profiles/$ACCOUNT"
+if test -f "$SAFE_MARKER"; then
+  printf 'mode=profile-quarantined\naccount=%s\nprofile-plugins=disabled\ncontrol-path=getty-or-recovery\n' "$ACCOUNT" > "/run/taichios/harness/$ACCOUNT.config"
+  STATUS="TaiChiOS Profile for $ACCOUNT is quarantined; use getty or Recovery"
+else
+  runuser -u "$ACCOUNT" -- env \
+    DSH_HOME="$USER_HOME/.dsh" \
+    DEEPSEEK_API_KEY=taichios-offline \
+    DEEPSEEK_BASE_URL=http://127.0.0.1:11435/v1 \
+    /usr/local/bin/dsh --profile dsh-tui --dump-config > "/run/taichios/harness/$ACCOUNT.config"
+  grep -q '@deepseek-harness-tui/dsh-tui' "/run/taichios/harness/$ACCOUNT.config"
+  STATUS="TaiChiOS Harness profile for $ACCOUNT is healthy"
+fi
 printf '%s\n' ready > "/run/taichios/harness/$ACCOUNT.ready"
+cleanup() {
+  rm -f -- "/run/taichios/harness/$ACCOUNT.heartbeat"
+}
+trap cleanup EXIT HUP INT TERM
+systemd-notify --ready --status="$STATUS"
+while :; do
+  touch "/run/taichios/harness/$ACCOUNT.heartbeat"
+  systemd-notify WATCHDOG=1
+  sleep 10
+done

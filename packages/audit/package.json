@@ -1,0 +1,16 @@
+{
+  "name": "@taichios/audit",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@taichios/contracts": "workspace:*"
+  }
+}

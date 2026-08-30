@@ -45,6 +45,11 @@ wait_for_marker() {
   ELAPSED=0
   while kill -0 "$ACTIVE_QEMU_PID" 2>/dev/null; do
     if grep -Fq "$MARKER" "$LOG_PATH"; then return 0; fi
+    if grep -Fq TAICHIOS_INSTALL_FAILED "$LOG_PATH"; then
+      cat "$LOG_PATH" >&2
+      echo "installer reported failure while waiting for $MARKER" >&2
+      return 1
+    fi
     if test "$ELAPSED" -ge "$TEST_TIMEOUT"; then
       cat "$LOG_PATH" >&2
       echo "missing $MARKER after ${TEST_TIMEOUT}s" >&2
@@ -53,7 +58,11 @@ wait_for_marker() {
     sleep 1
     ELAPSED=$((ELAPSED + 1))
   done
-  grep -Fq "$MARKER" "$LOG_PATH"
+  if ! grep -Fq "$MARKER" "$LOG_PATH"; then
+    cat "$LOG_PATH" >&2
+    echo "virtual machine exited before $MARKER" >&2
+    return 1
+  fi
 }
 
 echo "Installing under $BOOT_MODE firmware..."

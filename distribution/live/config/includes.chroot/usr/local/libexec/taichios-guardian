@@ -1,0 +1,139 @@
+#!/bin/sh
+set -eu
+
+ROOT=
+RUN_ONCE=false
+SYSTEMCTL=systemctl
+RECOVERY_COMMAND=/usr/local/sbin/taichios-recovery
+HEARTBEAT_MAX_AGE=45
+
+while test "$#" -gt 0; do
+  case "$1" in
+    --once) RUN_ONCE=true; shift ;;
+    --root) ROOT=${2:?missing managed root}; shift 2 ;;
+    --systemctl) SYSTEMCTL=${2:?missing systemctl command}; shift 2 ;;
+    --recovery-command) RECOVERY_COMMAND=${2:?missing recovery command}; shift 2 ;;
+    *) echo "unknown option: $1" >&2; exit 2 ;;
+  esac
+done
+
+if test -n "$ROOT"; then
+  case "$ROOT" in /*) ;; *) echo 'managed root must be absolute' >&2; exit 2;; esac
+  ROOT=$(CDPATH= cd -- "$ROOT" && pwd -P)
+  test "$ROOT" != / || ROOT=
+fi
+
+RUN_DIR="${ROOT}/run/taichios/guardian"
+REQUEST_DIR="$RUN_DIR/requests"
+STATE_DIR="${ROOT}/var/lib/taichios/guardian"
+ACCOUNTS_FILE="${ROOT}/etc/taichios/guardian/accounts"
+install -d -m 0750 "$RUN_DIR" "$REQUEST_DIR" "$STATE_DIR"
+
+incident() {
+  printf 'timestamp=%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >> "$STATE_DIR/incidents"
+}
+
+restart_unit() {
+  UNIT=$1
+  "$SYSTEMCTL" reset-failed "$UNIT" >/dev/null 2>&1 || true
+  "$SYSTEMCTL" restart "$UNIT"
+}
+
+run_recovery() {
+  if test -n "$ROOT"; then
+    "$RECOVERY_COMMAND" "$1" --root "$ROOT" "$2" "$3"
+  else
+    "$RECOVERY_COMMAND" "$1" "$2" "$3"
+  fi
+}
+
+process_requests() {
+  for REQUEST in "$REQUEST_DIR"/*; do
+    test -f "$REQUEST" || continue
+    REQUEST_COMMAND=
+    REQUEST_ARG1=
+    REQUEST_ARG2=
+    REQUEST_EXTRA=
+    IFS=' ' read -r REQUEST_COMMAND REQUEST_ARG1 REQUEST_ARG2 REQUEST_EXTRA < "$REQUEST" || true
+    case "$REQUEST_COMMAND" in
+      restart-harness)
+        case "$REQUEST_ARG1" in *[!A-Za-z0-9._-]*|'') incident kind=control-invalid; rm -f -- "$REQUEST"; continue;; esac
+        test -z "$REQUEST_ARG2$REQUEST_EXTRA" || { incident kind=control-invalid; rm -f -- "$REQUEST"; continue; }
+        restart_unit "taichios-harness@$REQUEST_ARG1.service" || incident kind=control-failed command=restart-harness account="$REQUEST_ARG1"
+        ;;
+      safe-profile)
+        case "$REQUEST_ARG1:$REQUEST_ARG2" in *[!A-Za-z0-9._:-]*|:|*:) incident kind=control-invalid; rm -f -- "$REQUEST"; continue;; esac
+        test -z "$REQUEST_EXTRA" || { incident kind=control-invalid; rm -f -- "$REQUEST"; continue; }
+        run_recovery disable-profile "$REQUEST_ARG1" "$REQUEST_ARG2" \
+          && restart_unit "taichios-harness@$REQUEST_ARG1.service" \
+          || incident kind=control-failed command=safe-profile account="$REQUEST_ARG1" profile="$REQUEST_ARG2"
+        ;;
+      enter-recovery)
+        test -z "$REQUEST_ARG1$REQUEST_ARG2$REQUEST_EXTRA" || { incident kind=control-invalid; rm -f -- "$REQUEST"; continue; }
+        "$SYSTEMCTL" isolate taichios-recovery.target || incident kind=control-failed command=enter-recovery
+        ;;
+      *) incident kind=control-invalid ;;
+    esac
+    rm -f -- "$REQUEST"
+  done
+}
+
+check_harnesses() {
+  test -f "$ACCOUNTS_FILE" || return 0
+  NOW=$(date +%s)
+  while IFS= read -r ACCOUNT; do
+    case "$ACCOUNT" in ''|'#'*) continue;; *[!A-Za-z0-9._-]*) incident kind=invalid-account account="$ACCOUNT"; continue;; esac
+    UNIT="taichios-harness@$ACCOUNT.service"
+    if "$SYSTEMCTL" is-failed --quiet "$UNIT"; then
+      incident kind=harness-failed account="$ACCOUNT"
+      restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
+      continue
+    fi
+    if ! "$SYSTEMCTL" is-active --quiet "$UNIT"; then
+      incident kind=harness-inactive account="$ACCOUNT"
+      restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
+      continue
+    fi
+    HEARTBEAT="${ROOT}/run/taichios/harness/$ACCOUNT.heartbeat"
+    READY="${ROOT}/run/taichios/harness/$ACCOUNT.ready"
+    if test -f "$HEARTBEAT"; then
+      AGE=$((NOW - $(stat -c %Y "$HEARTBEAT")))
+      if test "$AGE" -gt "$HEARTBEAT_MAX_AGE"; then
+        incident kind=harness-heartbeat-stale account="$ACCOUNT" age="$AGE"
+        restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
+      fi
+    elif test -f "$READY"; then
+      incident kind=harness-heartbeat-missing account="$ACCOUNT"
+      restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
+    fi
+  done < "$ACCOUNTS_FILE"
+}
+
+check_interface() {
+  if "$SYSTEMCTL" is-failed --quiet getty@tty1.service; then
+    incident kind=interface-failed unit=getty@tty1.service
+    restart_unit getty@tty1.service || incident kind=interface-restart-failed unit=getty@tty1.service
+  elif ! "$SYSTEMCTL" is-active --quiet getty@tty1.service; then
+    incident kind=interface-inactive unit=getty@tty1.service
+    restart_unit getty@tty1.service || incident kind=interface-restart-failed unit=getty@tty1.service
+  fi
+}
+
+guardian_cycle() {
+  process_requests
+  check_harnesses
+  check_interface
+  date -u +%Y-%m-%dT%H:%M:%SZ > "$RUN_DIR/heartbeat"
+}
+
+if test "$RUN_ONCE" = true; then
+  guardian_cycle
+  exit 0
+fi
+
+systemd-notify --ready --status='TaiChiOS Guardian is monitoring Harness and interface health'
+while :; do
+  guardian_cycle
+  systemd-notify WATCHDOG=1
+  sleep 10
+done
