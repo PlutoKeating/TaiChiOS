@@ -9,12 +9,15 @@ yarn install
 yarn lint
 yarn build
 yarn test
+yarn check:contracts
+yarn test:control-plane
+yarn test:change
+yarn test:recovery
 ```
 
 ## Planned system checks
 
 ```text
-check:contracts       schema and generated-binding compatibility
 check:upstreams       pinned upstream identity and license inventory
 test:boot             QEMU Live boot acceptance
 test:install          unattended fixture installation and first boot
@@ -24,5 +27,11 @@ build:live            reproducible x86_64 Live/install image
 ```
 
 Do not add placeholder commands that report success without performing their named check. A script enters the root task surface only when its contract is executable.
+
+`check:contracts` validates the control-plane and Change Set JSON Schemas with real accepted and rejected payloads and checks that their vocabulary matches the TypeScript contracts. `test:control-plane` exercises organization ownership, non-amplifying delegation, organization-scoped Provider routing, confirmation semantics, authorized/expiring Secret grants and audit attribution (including routing and credential failures) through public package interfaces. These are repository-level 0.2 reference contracts; they are not yet installed into the 0.1 Live image.
+
+`test:change` executes the same managed-file Change Set command shipped in the Live image against an isolated temporary system root. It proves audited Dry Run and confirmation rejection, staged activation, digest verification, commit, atomic system-update pointer rollback, rollback-failed and authenticated acting-principal behavior. `compat:live` invokes this behavior gate before accepting the image definition.
+
+`test:recovery` adds the shipped Guardian and Recovery commands. It injects crashed-Harness, stale-heartbeat, lost-interface, broken-Profile, recovery-control and trusted-file-tampering scenarios into an isolated system root. BIOS/UEFI reachability still requires the real-image `test:install` gate.
 
 The GitHub Actions build also installs the host tools required by the runtime and Live-image gates. Its apt operations use bounded retries and connection timeouts so an unavailable runner mirror fails promptly instead of occupying the pipeline indefinitely.

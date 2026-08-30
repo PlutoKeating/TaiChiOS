@@ -1,20 +1,59 @@
 #!/bin/sh
 set -eu
 
-case "${1:-}" in
+ACTION=${1:-}
+shift || true
+ROOT=
+if test "${1:-}" = --root; then
+  ROOT=${2:?missing managed root}
+  shift 2
+fi
+if test -n "$ROOT"; then
+  case "$ROOT" in /*) ;; *) echo 'managed root must be absolute' >&2; exit 2;; esac
+  ROOT=$(CDPATH= cd -- "$ROOT" && pwd -P)
+  test "$ROOT" != / || ROOT=
+fi
+
+case "$ACTION" in
   disable-profile)
-    ACCOUNT=${2:?missing account}
-    PROFILE=${3:?missing profile}
-    case "$PROFILE" in *[!A-Za-z0-9._-]*|'') echo "invalid profile" >&2; exit 2;; esac
-    USER_HOME=$(getent passwd "$ACCOUNT" | cut -d: -f6)
-    test -d "$USER_HOME/.dsh/profiles/$PROFILE"
-    mv "$USER_HOME/.dsh/profiles/$PROFILE" "$USER_HOME/.dsh/profiles/$PROFILE.disabled"
+    ACCOUNT=${1:?missing account}
+    PROFILE=${2:?missing profile}
+    case "$ACCOUNT:$PROFILE" in *[!A-Za-z0-9._:-]*|:|*:) echo 'invalid account or profile' >&2; exit 2;; esac
+    USER_HOME=$(awk -F: -v account="$ACCOUNT" '$1 == account { print $6 }' "${ROOT}/etc/passwd")
+    test -n "$USER_HOME" || { echo "account not found: $ACCOUNT" >&2; exit 1; }
+    PROFILE_PATH="${ROOT}${USER_HOME}/.dsh/profiles/$PROFILE"
+    test -d "$PROFILE_PATH" || { echo "profile not found: $PROFILE" >&2; exit 1; }
+    test ! -e "$PROFILE_PATH.disabled" || { echo "disabled profile already exists: $PROFILE" >&2; exit 1; }
+    mv "$PROFILE_PATH" "$PROFILE_PATH.disabled"
+    SAFE_PROFILE_DIR="${ROOT}/var/lib/taichios/guardian/safe-profiles"
+    install -d -m 0750 "$SAFE_PROFILE_DIR"
+    printf 'disabled-profile=%s\n' "$PROFILE" > "$SAFE_PROFILE_DIR/$ACCOUNT"
     ;;
   rollback-last)
+    if test -n "$ROOT"; then
+      exec /usr/local/sbin/taichios-change rollback --root "$ROOT" --last
+    fi
     exec /usr/local/sbin/taichios-change rollback --last
     ;;
+  verify)
+    VERIFY_ROOT=${ROOT:-/}
+    MANIFEST="$VERIFY_ROOT/usr/share/taichios/recovery/trusted-files.sha256"
+    test -f "$MANIFEST" || { echo 'trusted Recovery manifest is missing' >&2; exit 1; }
+    (cd "$VERIFY_ROOT" && sha256sum -c usr/share/taichios/recovery/trusted-files.sha256)
+    ;;
+  enter)
+    test -z "$ROOT" || { echo 'cannot isolate a target inside an offline root' >&2; exit 2; }
+    test "${1:-}" = --yes || { echo 'entering Recovery requires --yes' >&2; exit 2; }
+    test "$(id -u)" -eq 0 || { echo 'entering Recovery requires root' >&2; exit 1; }
+    exec systemctl isolate taichios-recovery.target
+    ;;
+  leave-safe-profile)
+    ACCOUNT=${1:?missing account}
+    case "$ACCOUNT" in *[!A-Za-z0-9._-]*|'') echo 'invalid account' >&2; exit 2;; esac
+    rm -f -- "${ROOT}/var/lib/taichios/guardian/safe-profiles/$ACCOUNT"
+    ;;
   *)
-    echo "usage: taichios-recovery disable-profile ACCOUNT PROFILE | rollback-last" >&2
+    echo 'usage: taichios-recovery disable-profile [--root ROOT] ACCOUNT PROFILE | leave-safe-profile [--root ROOT] ACCOUNT | rollback-last [--root ROOT] | verify [--root ROOT] | enter --yes' >&2
     exit 2
     ;;
 esac

@@ -1207,6 +1207,56 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@taichios/audit@workspace:*, @taichios/audit@workspace:packages/audit":
+  version: 0.0.0-use.local
+  resolution: "@taichios/audit@workspace:packages/audit"
+  dependencies:
+    "@taichios/contracts": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@taichios/contracts@workspace:*, @taichios/contracts@workspace:packages/contracts":
+  version: 0.0.0-use.local
+  resolution: "@taichios/contracts@workspace:packages/contracts"
+  languageName: unknown
+  linkType: soft
+
+"@taichios/identity@workspace:*, @taichios/identity@workspace:packages/identity":
+  version: 0.0.0-use.local
+  resolution: "@taichios/identity@workspace:packages/identity"
+  dependencies:
+    "@taichios/contracts": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@taichios/policy@workspace:*, @taichios/policy@workspace:packages/policy":
+  version: 0.0.0-use.local
+  resolution: "@taichios/policy@workspace:packages/policy"
+  dependencies:
+    "@taichios/contracts": "workspace:*"
+    "@taichios/identity": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@taichios/provider-registry@workspace:packages/provider-registry":
+  version: 0.0.0-use.local
+  resolution: "@taichios/provider-registry@workspace:packages/provider-registry"
+  dependencies:
+    "@taichios/audit": "workspace:*"
+    "@taichios/contracts": "workspace:*"
+    "@taichios/policy": "workspace:*"
+    "@taichios/secret-service": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@taichios/secret-service@workspace:*, @taichios/secret-service@workspace:packages/secret-service":
+  version: 0.0.0-use.local
+  resolution: "@taichios/secret-service@workspace:packages/secret-service"
+  dependencies:
+    "@taichios/contracts": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@taichios/workspace@workspace:.":
   version: 0.0.0-use.local
   resolution: "@taichios/workspace@workspace:."
@@ -1215,6 +1265,7 @@ __metadata:
     "@cordisjs/unyaml": "npm:^2.0.3"
     "@types/node": "npm:^25.3.5"
     "@vitest/coverage-v8": "npm:^4.1.5"
+    ajv: "npm:6.15.0"
     esbuild: "npm:^0.28.0"
     eslint: "npm:^8.57.1"
     shx: "npm:^0.4.0"
@@ -1608,7 +1659,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^6.12.4":
+"ajv@npm:6.15.0, ajv@npm:^6.12.4":
   version: 6.15.0
   resolution: "ajv@npm:6.15.0"
   dependencies:

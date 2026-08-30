@@ -9,6 +9,13 @@ for OPTION in $(cat /proc/cmdline); do
 done
 
 test -n "$TARGET" || exit 0
+set +e
 /usr/local/sbin/taichios-install --disk "$TARGET" --yes
+STATUS=$?
+set -e
+if test "$STATUS" -ne 0; then
+  echo "TAICHIOS_INSTALL_FAILED status=$STATUS" > /dev/ttyS0
+  exit "$STATUS"
+fi
 echo TAICHIOS_INSTALL_COMPLETE > /dev/ttyS0
 systemctl poweroff

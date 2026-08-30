@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+PATHS=/usr/share/taichios/recovery/trusted-paths
+MANIFEST=/usr/share/taichios/recovery/trusted-files.sha256
+: > "$MANIFEST"
+while IFS= read -r PATH_NAME; do
+  test -f "/$PATH_NAME"
+  HASH=$(sha256sum "/$PATH_NAME" | cut -d' ' -f1)
+  printf '%s  %s\n' "$HASH" "$PATH_NAME" >> "$MANIFEST"
+done < "$PATHS"
