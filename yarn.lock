@@ -1252,6 +1252,8 @@ __metadata:
 "@taichios/secret-service@workspace:*, @taichios/secret-service@workspace:packages/secret-service":
   version: 0.0.0-use.local
   resolution: "@taichios/secret-service@workspace:packages/secret-service"
+  dependencies:
+    "@taichios/contracts": "workspace:*"
   languageName: unknown
   linkType: soft
 
