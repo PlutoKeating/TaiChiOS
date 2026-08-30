@@ -26,6 +26,7 @@
         "proposed",
         "resolved",
         "authorized",
+        "dry-run",
         "staged",
         "activated",
         "verified",
@@ -89,7 +90,8 @@
       "if": {
         "properties": { "state": { "enum": ["failed", "rollback-failed"] } }
       },
-      "then": { "required": ["failureReason"] }
+      "then": { "required": ["failureReason"] },
+      "else": { "not": { "required": ["failureReason"] } }
     }
   ]
 }

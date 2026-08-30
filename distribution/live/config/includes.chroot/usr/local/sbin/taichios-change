@@ -4,8 +4,11 @@ set -eu
 ACTION=${1:-}
 shift || true
 ROOT=
-ACTOR="unix:$(id -un)"
+EXECUTOR="unix:$(id -un)"
+ACTOR=$EXECUTOR
+ACTOR_EXPLICIT=false
 MODE=
+CHANGE_KIND=managed-file
 
 normalize_root() {
   test -n "$ROOT" || return 0
@@ -17,6 +20,17 @@ normalize_root() {
 
 validate_id() {
   case "$1" in *[!A-Za-z0-9._-]*|'') echo "invalid change id: $1" >&2; exit 2;; esac
+}
+
+validate_kind() {
+  case "$1" in managed-file|system-update) ;; *) echo "Change Set kind has no installed adapter: $1" >&2; exit 2;; esac
+}
+
+validate_kind_target() {
+  case "$CHANGE_KIND:$TARGET" in
+    managed-file:/etc/taichios/*|managed-file:/opt/taichios/*|system-update:/opt/taichios/deployment) ;;
+    *) echo "Change Set kind and target are incompatible: $CHANGE_KIND $TARGET" >&2; exit 2 ;;
+  esac
 }
 
 validate_target() {
@@ -31,17 +45,48 @@ select_actor() {
     exit 1
   fi
   ACTOR=$REQUESTED_ACTOR
+  ACTOR_EXPLICIT=true
+}
+
+authenticate_actor() {
+  test "$ACTOR_EXPLICIT" = true || return 0
+  case "$ACTOR" in
+    unix:*) ACCOUNT=${ACTOR#unix:} ;;
+    *) echo 'installed Change Set adapter accepts only authenticated unix:ACCOUNT principals' >&2; exit 1 ;;
+  esac
+  case "$ACCOUNT" in *[!A-Za-z0-9._-]*|'') echo 'invalid Unix acting principal' >&2; exit 2;; esac
+  if test -n "$ROOT"; then
+    awk -F: -v account="$ACCOUNT" '$1 == account { found = 1 } END { exit !found }' "${ROOT}/etc/passwd" \
+      || { echo "acting principal is not present in managed root: $ACTOR" >&2; exit 1; }
+  else
+    getent passwd "$ACCOUNT" >/dev/null \
+      || { echo "acting principal is not present on this system: $ACTOR" >&2; exit 1; }
+  fi
 }
 
 set_paths() {
   STATE_DIR="${ROOT}/var/lib/taichios/changes"
 }
 
+record_event() {
+  EVENT_ACTION=$1
+  EVENT_OUTCOME=$2
+  EVENT_STATE=$3
+  EVENT_REASON=${4:-}
+  install -d -m 0750 "$STATE_DIR"
+  printf 'timestamp=%s action=%s change=%s kind=%s executor=%s actor=%s mode=%s outcome=%s state=%s' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$EVENT_ACTION" "$CHANGE_ID" "$CHANGE_KIND" "$EXECUTOR" "$ACTOR" "$MODE" "$EVENT_OUTCOME" "$EVENT_STATE" >> "$STATE_DIR/audit.log"
+  if test "$ACTOR" != "$EXECUTOR"; then printf ' delegatedBy=%s' "$EXECUTOR" >> "$STATE_DIR/audit.log"; fi
+  if test -n "$EVENT_REASON"; then printf ' reason=%s' "$EVENT_REASON" >> "$STATE_DIR/audit.log"; fi
+  printf '\n' >> "$STATE_DIR/audit.log"
+}
+
 record_state() {
   NEXT_STATE=$1
   REASON=${2:-}
   printf '%s\n' "$NEXT_STATE" > "$CHANGE_DIR/state"
-  printf 'timestamp=%s state=%s actor=%s mode=%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$NEXT_STATE" "$ACTOR" "$MODE" >> "$CHANGE_DIR/history"
+  printf 'timestamp=%s state=%s executor=%s actor=%s mode=%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$NEXT_STATE" "$EXECUTOR" "$ACTOR" "$MODE" >> "$CHANGE_DIR/history"
+  if test "$ACTOR" != "$EXECUTOR"; then printf ' delegatedBy=%s' "$EXECUTOR" >> "$CHANGE_DIR/history"; fi
   if test -n "$REASON"; then printf ' reason=%s' "$REASON" >> "$CHANGE_DIR/history"; fi
   printf '\n' >> "$CHANGE_DIR/history"
 }
@@ -85,6 +130,7 @@ case "$ACTION" in
       case "$1" in
         --root) ROOT=${2:?missing managed root}; shift 2 ;;
         --id) CHANGE_ID=${2:?missing id}; shift 2 ;;
+        --kind) CHANGE_KIND=${2:?missing kind}; shift 2 ;;
         --source) SOURCE=${2:?missing source}; shift 2 ;;
         --target) TARGET=${2:?missing target}; shift 2 ;;
         --dry-run) DRY_RUN=true; shift ;;
@@ -97,12 +143,15 @@ case "$ACTION" in
     done
     normalize_root
     set_paths
+    authenticate_actor
     test -n "$CHANGE_ID" && test -n "$SOURCE" && test -n "$TARGET" || {
-      echo 'usage: taichios-change apply [--root ROOT] --id ID --source FILE --target PATH (--dry-run|--yes|--yolo) [--non-interactive] [--as PRINCIPAL]' >&2
+      echo 'usage: taichios-change apply [--root ROOT] --id ID [--kind KIND] --source FILE --target PATH (--dry-run|--yes|--yolo) [--non-interactive] [--as PRINCIPAL]' >&2
       exit 2
     }
     validate_id "$CHANGE_ID"
+    validate_kind "$CHANGE_KIND"
     validate_target "$TARGET"
+    validate_kind_target
     test -f "$SOURCE" || { echo "source is not a file: $SOURCE" >&2; exit 2; }
     ACTUAL_TARGET="${ROOT}${TARGET}"
     test ! -d "$ACTUAL_TARGET" || { echo 'managed target must be a file' >&2; exit 2; }
@@ -110,28 +159,33 @@ case "$ACTION" in
 
     if test "$DRY_RUN" = true; then
       test -z "$CONFIRMATION" || { echo 'dry-run cannot accept apply confirmation' >&2; exit 2; }
-      printf 'change=%s\nsource=%s\nsourceSha256=%s\ntarget=%s\nmode=dry-run\nactor=%s\nstate=dry-run\n' \
-        "$CHANGE_ID" "$SOURCE" "$SOURCE_SHA256" "$TARGET" "$ACTOR"
+      MODE=guarded
+      record_event apply allowed dry-run
+      printf 'change=%s\nsource=%s\nsourceSha256=%s\ntarget=%s\nmode=%s\nactor=%s\nstate=dry-run\n' \
+        "$CHANGE_ID" "$SOURCE" "$SOURCE_SHA256" "$TARGET" "$MODE" "$ACTOR"
       exit 0
     fi
 
-    if test -z "$CONFIRMATION"; then
-      test "$NON_INTERACTIVE" = false || { echo 'non-interactive apply requires --yes or --yolo' >&2; exit 2; }
-      printf 'Apply Change Set %s to %s? [y/N] ' "$CHANGE_ID" "$TARGET" > /dev/tty
-      read -r ANSWER < /dev/tty
-      case "$ANSWER" in y|Y|yes|YES) CONFIRMATION=yes ;; *) echo 'change not confirmed' >&2; exit 1;; esac
-    fi
-    MODE=$([ "$CONFIRMATION" = yolo ] && printf yolo || printf guarded)
+    case "$CONFIRMATION" in yolo) MODE=yolo ;; *) MODE=guarded ;; esac
     if test -z "$ROOT" && test "$(id -u)" -ne 0; then
       echo 'live-system changes require root' >&2
       exit 1
+    fi
+    if test -z "$CONFIRMATION"; then
+      test "$NON_INTERACTIVE" = false || { record_event apply denied authorized confirmation-required; echo 'non-interactive apply requires --yes or --yolo' >&2; exit 2; }
+      printf 'Apply Change Set %s to %s? [y/N] ' "$CHANGE_ID" "$TARGET" > /dev/tty
+      read -r ANSWER < /dev/tty
+      case "$ANSWER" in y|Y|yes|YES) CONFIRMATION=yes ;; *) record_event apply denied authorized confirmation-rejected; echo 'change not confirmed' >&2; exit 1;; esac
     fi
 
     CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
     test ! -e "$CHANGE_DIR" || { echo "change already exists: $CHANGE_ID" >&2; exit 1; }
     install -d -m 0750 "$CHANGE_DIR" "$(dirname "$ACTUAL_TARGET")"
     printf '%s\n' "$TARGET" > "$CHANGE_DIR/target"
-    printf 'mode=%s\nactor=%s\nsourceSha256=%s\n' "$MODE" "$ACTOR" "$SOURCE_SHA256" > "$CHANGE_DIR/audit"
+    printf '%s\n' "$CHANGE_KIND" > "$CHANGE_DIR/kind"
+    printf 'kind=%s\nmode=%s\nexecutor=%s\nactor=%s\n' "$CHANGE_KIND" "$MODE" "$EXECUTOR" "$ACTOR" > "$CHANGE_DIR/audit"
+    if test "$ACTOR" != "$EXECUTOR"; then printf 'delegatedBy=%s\n' "$EXECUTOR" >> "$CHANGE_DIR/audit"; fi
+    printf 'sourceSha256=%s\n' "$SOURCE_SHA256" >> "$CHANGE_DIR/audit"
     record_state proposed
     record_state resolved
     record_state authorized
@@ -160,6 +214,7 @@ case "$ACTION" in
     record_state verified
     record_state committed
     printf '%s\n' "$CHANGE_ID" > "$STATE_DIR/last"
+    record_event apply allowed committed
     ;;
 
   rollback)
@@ -175,6 +230,7 @@ case "$ACTION" in
     done
     normalize_root
     set_paths
+    authenticate_actor
     if test "$CHANGE_ID" = --last; then
       test -f "$STATE_DIR/last" || exit 0
       CHANGE_ID=$(cat "$STATE_DIR/last")
@@ -183,10 +239,17 @@ case "$ACTION" in
     validate_id "$CHANGE_ID"
     CHANGE_DIR="$STATE_DIR/$CHANGE_ID"
     test -d "$CHANGE_DIR" || { echo "change not found: $CHANGE_ID" >&2; exit 1; }
-    MODE=rollback
+    CHANGE_KIND=$(cat "$CHANGE_DIR/kind")
+    validate_kind "$CHANGE_KIND"
+    MODE=guarded
     CURRENT_STATE=$(cat "$CHANGE_DIR/state")
     test "$CURRENT_STATE" != rolled-back || exit 0
-    rollback_change
+    if rollback_change; then
+      record_event rollback allowed rolled-back
+    else
+      record_event rollback failed rollback-failed rollback-point-unavailable
+      exit 1
+    fi
     ;;
 
   status)

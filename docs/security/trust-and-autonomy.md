@@ -28,7 +28,7 @@ TaiChiOS command surfaces should converge on shared flags:
 
 Individual tools must not invent contradictory meanings. `--yolo` must be visible in audit output and must never claim a Dry Run when persistent effects occurred.
 
-The installed managed-file implementation enforces this contract: `--non-interactive` without `--yes` or `--yolo` fails, Dry Run rejects apply confirmation and writes no target or Change Set state, and an unprivileged Unix caller cannot select a different `--as` principal. Root may select an authenticated acting principal for system integration, but the selection remains recorded and does not itself create a capability grant.
+The installed managed-file implementation enforces this contract: `--non-interactive` without `--yes` or `--yolo` fails, Dry Run rejects apply confirmation and writes no target or per-change state, and an unprivileged Unix caller cannot select a different `--as` principal. Dry Run remains the `dry-run` state under guarded mode, and confirmation rejection appends a truthful event to the global Change Set audit. This 0.1 adapter accepts only `unix:ACCOUNT` acting principals and verifies explicitly selected accounts against the live or offline root password database. When root deliberately acts on behalf of another existing account, every per-change and global audit record preserves both `executor=unix:root` and `delegatedBy=unix:root`; selection does not itself create a control-plane capability grant.
 
 ## Plugin trust tiers
 
