@@ -1,14 +1,14 @@
 # Compatibility matrix
 
-The `main` line contains the bootable `v0.1.0-mvp.5` prerelease, not a stable release. Its pinned Debian image, direct Live shell, installer, installed login page, Harness composition, transactional managed-file path, Guardian, and independent recovery target pass automated QEMU acceptance under BIOS and UEFI.
+The `main` line contains the bootable `v0.1.0-mvp.6` prerelease, not a stable release. Its pinned Debian image, direct Live shell, installer, installed login page, Harness composition, transactional managed-file path, Guardian, and independent recovery target pass automated QEMU acceptance under BIOS and UEFI.
 
-`main` 已包含可启动的 `v0.1.0-mvp.5` 预发布版，而不是稳定发行版。固定 Debian 镜像、直接进入的 Live Shell、安装器、安装后用户登录页、Harness 组合、事务式托管文件路径、Guardian 及独立恢复目标均已通过 BIOS 与 UEFI 的自动 QEMU 验收。
+`main` 已包含可启动的 `v0.1.0-mvp.6` 预发布版，而不是稳定发行版。固定 Debian 镜像、直接进入的 Live Shell、安装器、安装后用户登录页、Harness 组合、事务式托管文件路径、Guardian 及独立恢复目标均已通过 BIOS 与 UEFI 的自动 QEMU 验收。
 
 | TaiChiOS line | Debian snapshot | Node.js | Cordis | DeepSeek Harness | dsh-TUI | Status |
 |---|---|---|---|---|---|---|
-| `next` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | Development line based on mvp.5 |
-| `staging` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | mvp.5 promotion baseline |
-| [`v0.1.0-mvp.5`](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.5) (`main`) | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | MVP prerelease; transactional change and independent recovery paths verified |
+| `next` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | Development line based on mvp.6 |
+| `staging` | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | mvp.6 promotion baseline |
+| [`v0.1.0-mvp.6`](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.6) (`main`) | Debian 13.6 snapshot `20260819T000000Z` | `24.16.0` | `@deepseek-ai/cordis@4.0.1` | `@deepseek-ai/dsh@0.1.0-rc.7` | `@deepseek-harness-tui/dsh-tui@0.8.3` | MVP maintenance prerelease; v4 provenance attestation and refreshed website dependencies verified |
 
 Exact commits and package digests, rather than floating branch names, become build inputs.
 构建输入使用精确提交与制品摘要，不使用浮动分支或 dist-tag。
