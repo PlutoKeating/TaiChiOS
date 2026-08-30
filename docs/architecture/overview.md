@@ -40,7 +40,7 @@ UEFI/BIOS
 
 Guardian 位于普通插件树之外或拥有独立监督路径，因此 Harness/TUI 崩溃不等于系统不可恢复。其设计将参考成熟的心跳、safe profile 与进程重建模式，但不会直接复制其他项目实现。
 
-当前 Guardian 由独立 `taichios-guardian.service` 承载：systemd watchdog 监督 Guardian 本身，持续 heartbeat 监督每个 Harness supervisor，tty1 失败时单独恢复 getty。root-only 请求目录提供 restart-harness、safe-profile 与 enter-recovery 控制；事件写入独立持久 incident log。Recovery target 不依赖 Guardian、Harness 或普通 Profile，并在宣布 ready 前验证构建时封存的可信文件清单。
+当前 Guardian 由独立 `taichios-guardian.service` 承载：systemd watchdog 监督 Guardian 本身，service state 与持续 heartbeat 监督每个 Harness supervisor，tty1 failed/inactive 时单独恢复 getty。root-only 请求目录提供 restart-harness、safe-profile 与 enter-recovery 控制；safe-profile 会隔离损坏的普通/第三方 Profile，可信控制由独立的 getty-based Recovery Profile 提供，事件写入独立持久 incident log。Recovery target 不依赖 Guardian、Harness 或普通 Profile，并在宣布 ready 前验证构建时封存的可信文件清单。
 
 ## 控制面与执行面
 
@@ -82,7 +82,7 @@ propose
 
 用户显式覆盖可以减少审批或允许高风险影响，但 Change Set 仍应诚实记录发生了什么。可记录性与是否阻止执行是两件不同的事。
 
-`schemas/change-set.schema.json` 固定所有变更通道共享的 envelope 与状态词汇。0.1 镜像中的 `taichios-change` 已将这个契约落到受管文件：候选文件先进入独立 stage，激活后核对摘要，只有验证成功才 committed；回滚点缺失或恢复失败会进入 `rollback-failed`，不会伪装成成功。Profile、插件和系统更新 adapter 后续必须复用同一语义。
+`schemas/change-set.schema.json` 固定所有变更通道共享的 envelope 与状态词汇。0.1 镜像中的 `taichios-change` 已将这个契约落到受管文件，并以 `system-update` kind 覆盖 `/opt/taichios` 下的原子部署指针/清单：候选文件先进入独立 stage，激活后核对摘要，只有验证成功才 committed；回滚点缺失或恢复失败会进入 `rollback-failed`，不会伪装成成功。Profile、插件以及包管理器/多文件系统更新 adapter 后续必须复用同一语义，当前不得宣称已受保护。
 
 ## 上游边界
 

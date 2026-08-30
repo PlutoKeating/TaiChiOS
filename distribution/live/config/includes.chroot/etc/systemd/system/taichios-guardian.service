@@ -1,5 +1,6 @@
 [Unit]
 Description=TaiChiOS independent userspace Guardian
+ConditionKernelCommandLine=!taichios.install
 After=local-fs.target getty@tty1.service
 Wants=getty@tty1.service
 

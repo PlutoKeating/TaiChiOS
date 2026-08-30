@@ -95,12 +95,16 @@ check_harnesses() {
       continue
     fi
     HEARTBEAT="${ROOT}/run/taichios/harness/$ACCOUNT.heartbeat"
+    READY="${ROOT}/run/taichios/harness/$ACCOUNT.ready"
     if test -f "$HEARTBEAT"; then
       AGE=$((NOW - $(stat -c %Y "$HEARTBEAT")))
       if test "$AGE" -gt "$HEARTBEAT_MAX_AGE"; then
         incident kind=harness-heartbeat-stale account="$ACCOUNT" age="$AGE"
         restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
       fi
+    elif test -f "$READY"; then
+      incident kind=harness-heartbeat-missing account="$ACCOUNT"
+      restart_unit "$UNIT" || incident kind=harness-restart-failed account="$ACCOUNT"
     fi
   done < "$ACCOUNTS_FILE"
 }
@@ -108,6 +112,9 @@ check_harnesses() {
 check_interface() {
   if "$SYSTEMCTL" is-failed --quiet getty@tty1.service; then
     incident kind=interface-failed unit=getty@tty1.service
+    restart_unit getty@tty1.service || incident kind=interface-restart-failed unit=getty@tty1.service
+  elif ! "$SYSTEMCTL" is-active --quiet getty@tty1.service; then
+    incident kind=interface-inactive unit=getty@tty1.service
     restart_unit getty@tty1.service || incident kind=interface-restart-failed unit=getty@tty1.service
   fi
 }

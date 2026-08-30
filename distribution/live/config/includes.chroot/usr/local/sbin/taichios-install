@@ -56,8 +56,14 @@ mount "$ROOT_PART" "$TARGET_ROOT"
 MOUNTED=true
 mkdir -p "$TARGET_ROOT/boot/efi"
 mount "$EFI_PART" "$TARGET_ROOT/boot/efi"
-unsquashfs -f -d "$TARGET_ROOT" /run/live/medium/live/filesystem.squashfs
+echo TAICHIOS_INSTALL_STAGE=extract
+# Keep extraction comfortably inside the 2 GiB minimum supported installer VM.
+# Strict errors prevent a partially extracted root filesystem from progressing.
+unsquashfs -f -d "$TARGET_ROOT" -processors 1 -data-queue 128 -frag-queue 128 \
+  -strict-errors -no-progress \
+  /run/live/medium/live/filesystem.squashfs
 
+echo TAICHIOS_INSTALL_STAGE=configure
 ROOT_UUID=$(blkid -s UUID -o value "$ROOT_PART")
 EFI_UUID=$(blkid -s UUID -o value "$EFI_PART")
 cat > "$TARGET_ROOT/etc/fstab" <<EOF
@@ -100,4 +106,5 @@ printf '{"deployment":"initial","state":"known-good","rootUuid":"%s"}\n' "$ROOT_
 ln -s initial "$TARGET_ROOT/var/lib/taichios/deployments/current"
 ln -s initial "$TARGET_ROOT/var/lib/taichios/deployments/previous"
 sync
+echo TAICHIOS_INSTALL_STAGE=complete
 echo "TaiChiOS installed to $DISK"

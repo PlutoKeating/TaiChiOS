@@ -1,6 +1,6 @@
 # Recovery Profile
 
-The installed GRUB recovery entry boots `taichios-recovery.target`, which excludes ordinary Harness and third-party profile services while retaining local filesystems and serial login. `sudo taichios-recovery disable-profile ACCOUNT PROFILE` disables a broken profile; `sudo taichios-recovery rollback-last` restores the last file managed by `taichios-change`.
+The installed GRUB recovery entry is the trusted safe Profile: it boots `taichios-recovery.target`, excludes ordinary Harness and third-party Profile services, and retains local filesystems plus serial getty control. `sudo taichios-recovery disable-profile ACCOUNT PROFILE` disables a broken profile and quarantines that account's Harness supervisor so it cannot enter a restart loop; `sudo taichios-recovery leave-safe-profile ACCOUNT` removes the quarantine marker after repair. `sudo taichios-recovery rollback-last` restores the last file managed by `taichios-change`.
 
 Managed-file rollback preserves the complete Change Set history. A missing or unusable Rollback Point is recorded as `rollback-failed` instead of being reported as success, leaving the independent Recovery shell available for manual repair.
 

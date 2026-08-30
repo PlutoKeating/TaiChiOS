@@ -25,6 +25,9 @@ case "$ACTION" in
     test -d "$PROFILE_PATH" || { echo "profile not found: $PROFILE" >&2; exit 1; }
     test ! -e "$PROFILE_PATH.disabled" || { echo "disabled profile already exists: $PROFILE" >&2; exit 1; }
     mv "$PROFILE_PATH" "$PROFILE_PATH.disabled"
+    SAFE_PROFILE_DIR="${ROOT}/var/lib/taichios/guardian/safe-profiles"
+    install -d -m 0750 "$SAFE_PROFILE_DIR"
+    printf 'disabled-profile=%s\n' "$PROFILE" > "$SAFE_PROFILE_DIR/$ACCOUNT"
     ;;
   rollback-last)
     if test -n "$ROOT"; then
@@ -44,8 +47,13 @@ case "$ACTION" in
     test "$(id -u)" -eq 0 || { echo 'entering Recovery requires root' >&2; exit 1; }
     exec systemctl isolate taichios-recovery.target
     ;;
+  leave-safe-profile)
+    ACCOUNT=${1:?missing account}
+    case "$ACCOUNT" in *[!A-Za-z0-9._-]*|'') echo 'invalid account' >&2; exit 2;; esac
+    rm -f -- "${ROOT}/var/lib/taichios/guardian/safe-profiles/$ACCOUNT"
+    ;;
   *)
-    echo 'usage: taichios-recovery disable-profile [--root ROOT] ACCOUNT PROFILE | rollback-last [--root ROOT] | verify [--root ROOT] | enter --yes' >&2
+    echo 'usage: taichios-recovery disable-profile [--root ROOT] ACCOUNT PROFILE | leave-safe-profile [--root ROOT] ACCOUNT | rollback-last [--root ROOT] | verify [--root ROOT] | enter --yes' >&2
     exit 2
     ;;
 esac

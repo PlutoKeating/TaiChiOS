@@ -7,6 +7,7 @@ Conflicts=getty@tty1.service serial-getty@ttyS0.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/taichios-auto-install
+TimeoutStartSec=infinity
 StandardOutput=journal+console
 StandardError=journal+console
 

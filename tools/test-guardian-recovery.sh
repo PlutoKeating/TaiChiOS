@@ -16,11 +16,13 @@ trap cleanup EXIT HUP INT TERM
 
 mkdir -p "$TEST_ROOT/etc/taichios/guardian" "$TEST_ROOT/run/taichios/harness" \
   "$TEST_ROOT/usr/local/libexec" "$TEST_ROOT/home/taichi/.dsh/profiles/broken"
-printf '%s\n' taichi crashed > "$TEST_ROOT/etc/taichios/guardian/accounts"
+printf '%s\n' taichi crashed missing > "$TEST_ROOT/etc/taichios/guardian/accounts"
 printf '%s\n' \
   'taichi:x:1000:1000::/home/taichi:/usr/local/bin/taichios-shell' \
   'crashed:x:1001:1001::/home/crashed:/usr/local/bin/taichios-shell' > "$TEST_ROOT/etc/passwd"
 printf '%s\n' stale > "$TEST_ROOT/run/taichios/harness/taichi.heartbeat"
+printf '%s\n' ready > "$TEST_ROOT/run/taichios/harness/crashed.ready"
+printf '%s\n' ready > "$TEST_ROOT/run/taichios/harness/missing.ready"
 touch -d '2 minutes ago' "$TEST_ROOT/run/taichios/harness/taichi.heartbeat"
 
 FAKE_SYSTEMCTL="$TEST_ROOT/fake-systemctl"
@@ -28,9 +30,10 @@ cat > "$FAKE_SYSTEMCTL" <<EOF
 #!/bin/sh
 printf '%s\n' "\$*" >> "$SYSTEMCTL_LOG"
 case "\$*" in
-  'is-failed --quiet getty@tty1.service') exit 0 ;;
-  'is-failed --quiet taichios-harness@taichi.service'|'is-failed --quiet taichios-harness@crashed.service') exit 1 ;;
-  'is-active --quiet taichios-harness@taichi.service') exit 0 ;;
+  'is-failed --quiet getty@tty1.service') exit 1 ;;
+  'is-active --quiet getty@tty1.service') exit 1 ;;
+  'is-failed --quiet taichios-harness@taichi.service'|'is-failed --quiet taichios-harness@crashed.service'|'is-failed --quiet taichios-harness@missing.service') exit 1 ;;
+  'is-active --quiet taichios-harness@taichi.service'|'is-active --quiet taichios-harness@missing.service') exit 0 ;;
   'is-active --quiet taichios-harness@crashed.service') exit 1 ;;
 esac
 exit 0
@@ -51,15 +54,20 @@ chmod +x "$FAKE_RECOVERY"
 
 grep -q '^restart taichios-harness@taichi.service$' "$SYSTEMCTL_LOG"
 grep -q '^restart taichios-harness@crashed.service$' "$SYSTEMCTL_LOG"
+grep -q '^restart taichios-harness@missing.service$' "$SYSTEMCTL_LOG"
 grep -q '^restart getty@tty1.service$' "$SYSTEMCTL_LOG"
 grep -q '^isolate taichios-recovery.target$' "$SYSTEMCTL_LOG"
 grep -q '^disable-profile --root .* taichi broken$' "$RECOVERY_LOG"
 grep -q 'kind=harness-heartbeat-stale account=taichi' "$TEST_ROOT/var/lib/taichios/guardian/incidents"
 grep -q 'kind=harness-inactive account=crashed' "$TEST_ROOT/var/lib/taichios/guardian/incidents"
-grep -q 'kind=interface-failed unit=getty@tty1.service' "$TEST_ROOT/var/lib/taichios/guardian/incidents"
+grep -q 'kind=harness-heartbeat-missing account=missing' "$TEST_ROOT/var/lib/taichios/guardian/incidents"
+grep -q 'kind=interface-inactive unit=getty@tty1.service' "$TEST_ROOT/var/lib/taichios/guardian/incidents"
 
 "$RECOVERY" disable-profile --root "$TEST_ROOT" taichi broken
 test -d "$TEST_ROOT/home/taichi/.dsh/profiles/broken.disabled"
+test -f "$TEST_ROOT/var/lib/taichios/guardian/safe-profiles/taichi"
+"$RECOVERY" leave-safe-profile --root "$TEST_ROOT" taichi
+test ! -e "$TEST_ROOT/var/lib/taichios/guardian/safe-profiles/taichi"
 
 printf '%s\n' trusted > "$TEST_ROOT/usr/local/libexec/trusted-recovery-tool"
 (
