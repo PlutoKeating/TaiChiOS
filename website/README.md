@@ -13,6 +13,8 @@ Production URL: **https://taichios.arr2018.dpdns.org**
 
 The application is intentionally independent from the operating-system root Yarn workspace. Use npm only inside this directory.
 
+Website tooling follows the repository's tested runtime boundary: `@types/node` stays on the Node 24 major used by CI, and TypeScript major upgrades are reviewed as isolated migrations. Dependabot may group compatible patch/minor tooling updates, but it ignores those two major-version jumps until their runtime and compiler contracts are deliberately advanced.
+
 ## Local development
 
 ```sh
