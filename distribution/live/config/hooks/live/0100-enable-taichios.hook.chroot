@@ -6,3 +6,4 @@ ln -s ../taichios-boot-ready.service /etc/systemd/system/multi-user.target.wants
 systemctl enable getty@tty1.service
 systemctl enable serial-getty@ttyS0.service
 systemctl enable taichios-auto-install.service
+systemctl enable taichios-guardian.service
