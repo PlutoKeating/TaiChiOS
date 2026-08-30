@@ -1,0 +1,11 @@
+allowBuilds:
+  '@deepseek-ai/dsh-subprocess-local': true
+  '@google/genai': true
+  koffi: true
+  node-pty: true
+  protobufjs: true
+minimumReleaseAgeExclude:
+  - '@deepseek-harness-tui/dsh-tui@0.8.3'
+peerDependencyRules:
+  allowedVersions:
+    'dsh-working-activity>react': '19'

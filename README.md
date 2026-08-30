@@ -6,9 +6,9 @@
 
 **A bootable, agent-native Debian derivative built around a composable userspace microkernel.**
 
-[简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
+[官方网站](https://taichios.arr2018.dpdns.org) · [简体中文](#太极生万象系统由意图而生) · [English](./README.en.md) · [愿景](./docs/product/vision.md) · [架构](./docs/architecture/overview.md) · [路线图](./docs/roadmap.md)
 
-![Status](https://img.shields.io/badge/status-foundation-6c5ce7)
+![Status](https://img.shields.io/badge/status-0.1_MVP_prerelease-6c5ce7)
 ![Platform](https://img.shields.io/badge/platform-x86__64-0984e3)
 ![Base](https://img.shields.io/badge/base-Debian-A81D33?logo=debian&logoColor=white)
 ![License](https://img.shields.io/badge/license-Apache--2.0-2d3436)
@@ -22,7 +22,9 @@ TaiChiOS 是一个面向个人、团队与自治 Agent 的 AI 原生操作系统
 它不是一个把聊天窗口贴到 Linux 上的发行版。TaiChiOS 希望让系统本身成为一个可以理解目标、组合能力、持续工作、安装新能力并从失败中恢复的运行环境。
 
 > [!IMPORTANT]
-> TaiChiOS 正处于创始脚手架阶段，尚未发布可安装镜像。当前仓库首先固定项目宪法、信任边界、发行版结构和验证路径，再以螺旋模型逐层实现可启动系统。
+> TaiChiOS 提供最新的可启动、可安装、可运行 [`v0.1.0-mvp.4` 预发布镜像](https://github.com/PlutoKeating/TaiChiOS/releases/tag/v0.1.0-mvp.4)。同一发布镜像通过 QEMU BIOS/UEFI Live Shell、整盘安装、安装后用户登录页、硬盘首启与 Recovery 验收。它不是稳定版；默认账号只用于开发验收，不适合真实设备或生产环境。
+
+包管理职责按生态分层：Debian 系统软件由 `apt` 管理；DeepSeek Harness 的 Profile 与插件沿用 DSH 原生的 pnpm；Yarn 4 仅驱动继承自 Cordis 上游的源码工作区、Yakumo 构建和仓库测试。Yarn 不是 Debian 系统包管理器，根工作区及其依赖不会被复制进系统镜像。
 
 ## 核心主张
 
@@ -57,7 +59,7 @@ Cordis 的 Context、Service、Fiber 和 Effect 负责能力组合与可逆生�
 
 ## 首个可验证目标
 
-TaiChiOS `0.1` 将交付一个 x86_64 Live 系统：它可以从 USB/虚拟机启动，运行图形化安装器，将系统安装到磁盘并配置引导，然后进入预装 [dsh-TUI](https://github.com/ccch1mneyyy/dsh-TUI) 的 TaiChi Shell。用户可以移除 TUI、选择纯字符/headless 环境，或安装可选 WebView 与其他界面插件。
+TaiChiOS `0.1` MVP 候选已经实现一个 x86_64 Debian Live 系统：它可以在虚拟机中启动，运行可审计的文本整盘安装器，将系统安装到磁盘并配置 BIOS/UEFI GRUB，然后进入预装 [dsh-TUI](https://github.com/ccch1mneyyy/dsh-TUI) 的 TaiChi Shell。TUI 失败时会回退到纯字符 Shell；图形安装器和 WebView 不在该候选范围内。
 
 首轮验收不以截图为准，而以以下闭环为准：
 
@@ -79,15 +81,16 @@ boot live media
 apps/           系统入口、安装器、Shell 与监督进程
 bundles/        可分发的 TaiChiOS/DSH 插件组合
 profiles/       base、desktop、headless、recovery 等启动组合
-packages/       TaiChiOS 系统能力与当前 Cordis 上游快照
+packages/       TaiChiOS 自有系统能力
 distribution/   Debian Live、安装器、引导与 Debian 包构建
 schemas/        插件、权限、Provider 与更新协议
 tests/          启动、安装、恢复、安全和兼容性验收
 docs/           宪法、ADR、架构、安全、发布和开发文档
 vendor/         显式固定且保留许可证的上游源码/补丁
+website/        官方网站、响应式设计规范与 Cloudflare Pages 配置
 ```
 
-当前 `packages/core`、`packages/loader` 等目录来自本仓库前身 Cordis fork。它们将在专门的历史保全迁移中归入明确的上游边界；详见[仓库布局](./docs/architecture/repository-layout.md)。
+本仓库前身 Cordis fork 的源码已按原提交身份归入 `vendor/cordis`，不属于 TaiChiOS 自有能力包，也不进入官方 Harness 运行时；详见[仓库布局](./docs/architecture/repository-layout.md)。
 
 ## 参与这项事业
 

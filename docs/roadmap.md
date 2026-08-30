@@ -10,6 +10,8 @@
 
 ## 0.1 — Bootable TaiChi Shell
 
+MVP prerelease implemented, packaged, and gated on x86_64 QEMU; real-hardware and production-security hardening remain.
+
 - Reproducible x86_64 Debian Live build
 - Live installer and GRUB installation
 - Installed-system first boot
@@ -56,4 +58,3 @@
 - Published compatibility and security policy
 - Reproducible release pipeline
 - Installer, recovery and migration acceptance guarantees
-

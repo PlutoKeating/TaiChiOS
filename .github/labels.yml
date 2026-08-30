@@ -23,10 +23,12 @@
 - name: "area: ecosystem"
   color: "0e8a16"
   description: Plugins, Store or upstream compatibility
+- name: "area: website"
+  color: "22d3ee"
+  description: Official website, content, accessibility or deployment
 - name: "state: needs-triage"
   color: "ededed"
   description: Awaiting initial classification
 - name: "state: blocked"
   color: "000000"
   description: Cannot progress until a named condition changes
-

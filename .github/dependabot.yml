@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /website
+    schedule:
+      interval: monthly
+    groups:
+      website-runtime:
+        patterns: [react, react-dom, react-router, lucide-react]
+      website-tooling:
+        patterns: ["@react-router/*", "@tailwindcss/*", "@types/*", tailwindcss, typescript, vite, vitest]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -28,7 +28,8 @@ Every release records:
 - migrations and rollback compatibility
 - known security and recovery limitations
 
+Release tags invoke a dedicated workflow that checks out the tagged commit, builds the binary and corresponding-source images, runs runtime compatibility plus BIOS/UEFI Live/install/recovery acceptance against that binary image, generates checksums and machine-readable metadata, attests the payload, stages the complete Release as a draft, and only then makes the GitHub prerelease public. A manual run may rebuild an existing tag, but refuses to replace an already staged or published release.
+
 ## Cadence
 
 The project publishes early foundation releases, but a feature is not promoted merely because its happy path works. Each spiral increment defines its architecture boundary, contract, verification, failure behavior and rollback path before promotion.
-

@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+LIVE_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+REPO_DIR=$(CDPATH= cd -- "$LIVE_DIR/../.." && pwd)
+ARTIFACT_DIR="$REPO_DIR/artifacts/live"
+
+cd "$LIVE_DIR"
+lb clean noauto --purge "$@"
+
+if test -d "$ARTIFACT_DIR"; then
+  find "$ARTIFACT_DIR" -maxdepth 1 -type f \
+    \( -name 'taichios-0.1-amd64.hybrid.iso' \
+       -o -name 'taichios-0.1-source.iso' \
+       -o -name 'taichios-0.1-amd64.hybrid.iso.sha256' \
+       -o -name 'source.contents' \
+       -o -name 'SHA256SUMS' \
+       -o -name 'binary.packages' \
+       -o -name 'chroot.packages.install' \
+       -o -name 'chroot.packages.live' \
+       -o -name 'build-environment.txt' \
+       -o -name 'release-metadata.json' \) \
+    -delete
+fi

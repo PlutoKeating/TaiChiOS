@@ -1,0 +1,26 @@
+#!/bin/sh
+set -eu
+
+install -d -m 0755 /run/taichios
+printf '%s\n' TAICHIOS_BOOT_READY > /run/taichios/boot-ready
+
+if test -c /dev/ttyS0; then
+  printf '%s\n' TAICHIOS_BOOT_READY > /dev/ttyS0
+fi
+
+if grep -qw boot=live /proc/cmdline && ! grep -qw taichios.install /proc/cmdline; then
+  systemctl restart --no-block getty@tty1.service
+  elapsed=0
+  while test "$elapsed" -lt 30; do
+    if ps -t tty1 -o user= 2>/dev/null | grep -qw taichi; then
+      if test -c /dev/ttyS0; then
+        printf '%s\n' TAICHIOS_LIVE_SHELL_READY > /dev/ttyS0
+      fi
+      exit 0
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  echo 'tty1 did not expose the Live user shell' >&2
+  exit 1
+fi

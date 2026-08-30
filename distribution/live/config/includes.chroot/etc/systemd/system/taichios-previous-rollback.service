@@ -1,0 +1,11 @@
+[Unit]
+Description=Roll back the last TaiChiOS managed change
+ConditionKernelCommandLine=taichios.deployment=previous
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/taichios-change rollback --last
+
+[Install]
+WantedBy=multi-user.target

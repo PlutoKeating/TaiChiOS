@@ -2,10 +2,10 @@
   "extends": "./tsconfig.base",
   "compilerOptions": {
     "paths": {
-      "cordis": ["./packages/core/src"],
-      "create-cordis": ["./packages/create/src"],
-      "@cordisjs/plugin-*": ["./packages/*/src"],
-      "@cordisjs/*": ["./packages/*/src"],
+      "cordis": ["./vendor/cordis/packages/core/src"],
+      "create-cordis": ["./vendor/cordis/packages/create/src"],
+      "@cordisjs/plugin-*": ["./vendor/cordis/packages/*/src"],
+      "@cordisjs/*": ["./vendor/cordis/packages/*/src"],
     },
   },
   "files": [],

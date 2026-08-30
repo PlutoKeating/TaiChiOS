@@ -1,4 +1,3 @@
 # Recovery Profile
 
-Minimal trusted profile that excludes ordinary third-party plugins and can repair identity, configuration, updates and boot state.
-
+The installed GRUB recovery entry boots `taichios-recovery.target`, which excludes ordinary Harness and third-party profile services while retaining local filesystems and serial login. `sudo taichios-recovery disable-profile ACCOUNT PROFILE` disables a broken profile; `sudo taichios-recovery rollback-last` restores the last file managed by `taichios-change`.

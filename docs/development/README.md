@@ -25,3 +25,4 @@ build:live            reproducible x86_64 Live/install image
 
 Do not add placeholder commands that report success without performing their named check. A script enters the root task surface only when its contract is executable.
 
+The GitHub Actions build also installs the host tools required by the runtime and Live-image gates. Its apt operations use bounded retries and connection timeouts so an unavailable runner mirror fails promptly instead of occupying the pipeline indefinitely.

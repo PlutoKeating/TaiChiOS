@@ -1,0 +1,11 @@
+[Unit]
+Description=Publish the TaiChiOS boot acceptance marker
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/taichios-boot-ready
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

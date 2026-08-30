@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+TARGET=
+for OPTION in $(cat /proc/cmdline); do
+  case "$OPTION" in
+    taichios.install=*) TARGET=${OPTION#taichios.install=} ;;
+  esac
+done
+
+test -n "$TARGET" || exit 0
+/usr/local/sbin/taichios-install --disk "$TARGET" --yes
+echo TAICHIOS_INSTALL_COMPLETE > /dev/ttyS0
+systemctl poweroff
