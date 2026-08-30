@@ -1,0 +1,36 @@
+#!/bin/sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+LIVE_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+REPO_DIR=$(CDPATH= cd -- "$LIVE_DIR/../.." && pwd)
+LOCK_PATH="$REPO_DIR/distribution/debian/runtime.lock.json"
+RUNTIME_SOURCE="$REPO_DIR/distribution/runtime"
+STAGE_ROOT="$LIVE_DIR/config/includes.chroot/opt/taichios"
+CACHE_DIR="$REPO_DIR/artifacts/cache"
+
+NODE_VERSION=$(node -e "const l=require(process.argv[1]); process.stdout.write(l.node.version)" "$LOCK_PATH")
+NODE_ARCHIVE=$(node -e "const l=require(process.argv[1]); process.stdout.write(l.node.archive)" "$LOCK_PATH")
+NODE_SHA256=$(node -e "const l=require(process.argv[1]); process.stdout.write(l.node.sha256)" "$LOCK_PATH")
+NODE_SOURCE=$(node -e "const l=require(process.argv[1]); process.stdout.write(l.node.source)" "$LOCK_PATH")
+
+test -d "$RUNTIME_SOURCE/node_modules/.pnpm" || {
+  echo "missing pinned runtime; run corepack yarn install:runtime first" >&2
+  exit 1
+}
+
+mkdir -p "$CACHE_DIR" "$STAGE_ROOT"
+if ! test -f "$CACHE_DIR/$NODE_ARCHIVE" || ! printf '%s  %s\n' "$NODE_SHA256" "$CACHE_DIR/$NODE_ARCHIVE" | sha256sum --check --status; then
+  curl --fail --location --retry 5 --output "$CACHE_DIR/$NODE_ARCHIVE.part" "$NODE_SOURCE$NODE_ARCHIVE"
+  printf '%s  %s\n' "$NODE_SHA256" "$CACHE_DIR/$NODE_ARCHIVE.part" | sha256sum --check --status
+  mv "$CACHE_DIR/$NODE_ARCHIVE.part" "$CACHE_DIR/$NODE_ARCHIVE"
+fi
+
+find "$STAGE_ROOT" -mindepth 1 -delete
+mkdir -p "$STAGE_ROOT/node" "$STAGE_ROOT/runtime" "$STAGE_ROOT/tools"
+tar --extract --xz --file "$CACHE_DIR/$NODE_ARCHIVE" --directory "$STAGE_ROOT/node" --strip-components=1
+cp -a "$RUNTIME_SOURCE/node_modules" "$RUNTIME_SOURCE/package.json" "$RUNTIME_SOURCE/pnpm-lock.yaml" "$RUNTIME_SOURCE/pnpm-workspace.yaml" "$RUNTIME_SOURCE/profiles" "$STAGE_ROOT/runtime/"
+cp "$REPO_DIR/tools/prepare-dsh-profile.mjs" "$STAGE_ROOT/tools/"
+
+test "$("$STAGE_ROOT/node/bin/node" --version)" = "v$NODE_VERSION"
+echo "staged Node $NODE_VERSION and the pinned Harness runtime"

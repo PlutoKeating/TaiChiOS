@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+ACCOUNT=${1:?missing account}
+USER_HOME=$(getent passwd "$ACCOUNT" | cut -d: -f6)
+test -n "$USER_HOME"
+install -d -m 0755 /run/taichios/harness
+runuser -u "$ACCOUNT" -- env \
+  DSH_HOME="$USER_HOME/.dsh" \
+  DEEPSEEK_API_KEY=taichios-offline \
+  DEEPSEEK_BASE_URL=http://127.0.0.1:11435/v1 \
+  /usr/local/bin/dsh --profile dsh-tui --dump-config > "/run/taichios/harness/$ACCOUNT.config"
+grep -q '@deepseek-harness-tui/dsh-tui' "/run/taichios/harness/$ACCOUNT.config"
+printf '%s\n' ready > "/run/taichios/harness/$ACCOUNT.ready"

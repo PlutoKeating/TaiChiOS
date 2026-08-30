@@ -7,14 +7,26 @@
   "packageManager": "yarn@4.14.1",
   "workspaces": [
     "external/*",
-    "packages/*"
+    "packages/*",
+    "vendor/cordis/packages/*"
   ],
   "license": "Apache-2.0",
   "scripts": {
     "lint": "eslint --cache",
+    "install:runtime": "cd distribution/runtime && corepack pnpm install --frozen-lockfile",
+    "compat:runtime": "node tools/verify-runtime-compatibility.mjs",
+    "compat:cordis": "node tools/verify-vendored-cordis.mjs",
+    "compat:live": "node tools/verify-debian-live.mjs",
+    "install:live-build": "tools/install-live-build.sh",
+    "build:live": "sudo distribution/live/auto/config && sudo distribution/live/auto/build",
+    "build:release": "sudo distribution/live/auto/config --source true --source-images iso --apt-source-archives true && sudo distribution/live/auto/build",
+    "prepare:release": "node tools/prepare-release-artifacts.mjs",
+    "clean:live": "sudo distribution/live/auto/clean",
+    "test:live": "tools/test-live-boot.sh all",
+    "test:install": "tools/test-installed-system.sh bios && tools/test-installed-system.sh uefi",
     "yakumo": "node --expose-internals --import tsx --import @cordisjs/unyaml node_modules/yakumo/lib/cli.js",
-    "build": "yarn yakumo esbuild && yarn yakumo tsc",
-    "test": "yarn yakumo vitest --import tsx",
+    "build": "yarn yakumo esbuild && yarn yakumo tsc core loader && yarn yakumo tsc",
+    "test": "vitest run --config vitest.config.ts",
     "test:text": "shx rm -rf coverage && yarn test --coverage --coverage.reporter text",
     "test:json": "shx rm -rf coverage && yarn test --coverage --coverage.reporter json",
     "test:html": "shx rm -rf coverage && yarn test --coverage --coverage.reporter html"

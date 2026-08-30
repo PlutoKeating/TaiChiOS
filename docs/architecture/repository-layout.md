@@ -35,7 +35,8 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 │   │   └── config/
 │   ├── installer/          # Calamares/安装流程配置
 │   ├── boot/               # GRUB、启动菜单、恢复入口
-│   └── debian/             # TaiChiOS 自有 Debian 包与仓库元数据
+│   ├── debian/             # TaiChiOS 自有 Debian 包与仓库元数据
+│   └── runtime/            # 固定的 Cordis/DSH/界面运行时装配与工厂 Profile
 ├── schemas/                # 跨包稳定协议
 ├── tests/                  # 从外部观察系统的验收套件
 │   ├── boot/
@@ -45,21 +46,21 @@ TaiChiOS 使用 Monorepo 管理发行版配置、系统控制面、协议、界�
 │   ├── security/
 │   └── compatibility/
 ├── tools/                  # 构建、发布、检查和开发者工具
+├── website/                # 独立安装、测试和发布的官方 React Router 网站
 ├── docs/                   # 产品、架构、ADR、安全与发布文档
 └── vendor/                 # 必须固定源码时的显式上游边界
 ```
 
-## 当前迁移状态
+## Cordis 上游边界
 
-仓库前身是 Cordis fork，因此当前 `packages/core`、`packages/loader`、`packages/include` 等仍是 Cordis 源码。它们暂时保持原位以保护可运行性和 Git 历史。后续以单独迁移提交完成以下选择之一：
+仓库前身 Cordis fork 的 `core`、`loader`、`include` 等源码已迁入 `vendor/cordis/packages`。选择 vendoring 对应上游政策的“安全审计要求冻结完整源码”：TaiChiOS 0.1 迁移期需要保留原测试、Git 历史与可独立核对的旧行为基线；发行运行时仍消费 `@deepseek-ai/cordis`，不会加载此快照。
 
-1. 若 TaiChiOS 只消费发布包，移除本地快照并通过 lockfile 固定；
-2. 若必须长期维护补丁，将快照历史保全迁入 `vendor/cordis`；
-3. 可上游化的改动提交给 Cordis，TaiChiOS 只保留短期 patch queue。
+不可变来源、MIT 许可证、包版本和本地补丁队列记录在 `vendor/cordis/upstream.json`。当前唯一补丁是迁移后 TypeScript 配置对仓库根目录的相对路径调整，不修改 Cordis 行为。`corepack yarn compat:cordis` 会逐文件比对固定上游提交并运行在 CI 中。
 
-迁移完成前，新增 TaiChiOS 包只使用上表中的明确名称，不把新业务混入现有 Cordis 包。
+TaiChiOS 自有包只进入根 `packages/` 中的明确边界，不得加入 `vendor/cordis`。待 TaiChiOS 自有测试不再依赖旧快照后，退出策略是删除 vendored 工作区并继续通过运行时 lockfile 消费发布包；历史仍由本仓库 Git 父提交与 `upstream` 远端保全。
+
+`distribution/runtime` 中的私有 package manifest 仅是发行版装配边界，不是新的公开 TaiChiOS 能力包；它必须通过 lockfile 固定上游制品，不能承载 TaiChiOS 业务逻辑。
 
 ## 为什么 Debian 不进入 vendor
 
 Debian 不是一个适合整体 vendor 的单仓库产品。TaiChiOS 通过 Debian Archive/Snapshot、APT 源、源码包和 `live-build` 配置记录来源；自身改动形成独立 Debian 包。这样可以继续接收安全更新、生成对应源代码清单，并避免维护无法同步的 Debian 巨型 fork。
-

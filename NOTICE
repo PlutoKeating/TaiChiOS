@@ -15,3 +15,14 @@ upstream projects. Their names identify compatibility and provenance and do
 not imply endorsement of TaiChiOS. Distributed builds must include the license
 and attribution material required by the exact upstream versions they contain.
 
+The TaiChiOS 0.1 runtime candidate includes DeepSeek Harness components,
+Copyright (c) 2026 DeepSeek, under the MIT License, preserved at
+vendor/licenses/deepseek-harness-MIT.txt. It also includes dsh-TUI,
+Copyright (c) 2026 chimney (ccch1mneyyy), under the MIT License, preserved at
+vendor/licenses/dsh-TUI-MIT.txt.
+
+The direct runtime also pins Node.js 24.16.0, pnpm 11.7.0, React 18.3.1,
+and React DOM 18.3.1. Their license identifiers and installed license-file
+locations are recorded in distribution/debian/runtime.lock.json. Node's
+complete LICENSE file, including bundled third-party notices, is taken from
+the checksummed upstream archive and must be installed with that runtime.

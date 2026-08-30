@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+test "$(/opt/taichios/node/bin/node --version)" = v24.16.0
+/usr/local/bin/dsh --version

@@ -29,3 +29,4 @@ A system-facing change should include, in proportion to its risk:
 
 Keep changes focused and state which acceptance path proves them. Changes that modify identity, permission, plugin loading, update, recovery or boot behavior must explain both Guarded and explicit-override behavior.
 
+Website changes must also follow `website/docs/RESPONSIVE_STANDARD.md`, include both Simplified Chinese and English copy, and pass `npm run check` from `website/`.
