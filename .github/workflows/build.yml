@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup pinned Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24.16.0
       - name: Enable Corepack
@@ -49,7 +49,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
       - name: Setup pinned Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24.16.0
       - name: Enable Corepack
@@ -94,7 +94,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Enable Corepack
@@ -115,7 +115,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Enable Corepack
@@ -147,7 +147,7 @@ jobs:
       - name: Check out
         uses: actions/checkout@v7
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
       - name: Enable Corepack

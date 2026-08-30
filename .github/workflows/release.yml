@@ -52,7 +52,7 @@ jobs:
           echo "notes_file=$notes_file" >> "$GITHUB_OUTPUT"
           echo "release_commit=$tag_commit" >> "$GITHUB_OUTPUT"
       - name: Setup pinned Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24.16.0
       - name: Enable Corepack
