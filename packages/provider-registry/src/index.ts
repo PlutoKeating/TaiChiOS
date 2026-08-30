@@ -17,14 +17,22 @@ export class ProviderRegistry {
   ) {}
 
   register(provider: ProviderRegistration) {
-    if (this.#providers.has(provider.id)) throw new Error(`provider already exists: ${provider.id}`)
+    const key = `${provider.organizationId}:${provider.id}`
+    if (this.#providers.has(key)) throw new Error(`provider already exists: ${provider.id}`)
     if (!provider.models.length) throw new Error('provider must declare at least one model')
-    this.#providers.set(provider.id, provider)
+    this.#providers.set(key, provider)
   }
 
   async invoke(request: ProviderInvocation): Promise<ProviderResult> {
-    const provider = this.#selectProvider(request)
-    const resource = `provider:${provider.id}`
+    let provider: ProviderRegistration
+    let resource = request.providerId ? `provider:${request.providerId}` : `provider:model:${request.model}`
+    try {
+      provider = this.#selectProvider(request)
+      resource = `provider:${provider.id}`
+    } catch {
+      this.#record(request, resource, 'failed', 'provider-not-found')
+      throw new Error(`provider not found for model: ${request.model}`)
+    }
     const decision = this.policy.authorize({
       organizationId: request.organizationId,
       principalId: request.principalId,
@@ -42,9 +50,27 @@ export class ProviderRegistry {
     }
 
     const audience = `${resource}:${request.principalId}`
-    const credential = provider.secretId
-      ? this.secrets.redeem(this.secrets.issueGrant(provider.secretId, audience), audience)
-      : undefined
+    let credential: string | undefined
+    if (provider.secretId) {
+      try {
+        const grant = this.secrets.issueGrant({
+          organizationId: request.organizationId,
+          principalId: request.principalId,
+          secretId: provider.secretId,
+          audience,
+          mode: request.mode,
+          confirmed: request.confirmed,
+        })
+        credential = this.secrets.redeem(grant, {
+          organizationId: request.organizationId,
+          principalId: request.principalId,
+          audience,
+        })
+      } catch {
+        this.#record(request, resource, 'failed', 'secret-grant-failed')
+        throw new Error('provider credential grant failed')
+      }
+    }
     try {
       const result = await provider.adapter.invoke(structuredClone(request), credential)
       this.#record(request, resource, 'allowed')
@@ -57,8 +83,9 @@ export class ProviderRegistry {
 
   #selectProvider(request: ProviderInvocation) {
     const provider = request.providerId
-      ? this.#providers.get(request.providerId)
-      : [...this.#providers.values()].find(candidate => candidate.models.includes(request.model))
+      ? this.#providers.get(`${request.organizationId}:${request.providerId}`)
+      : [...this.#providers.values()].find(candidate => candidate.organizationId === request.organizationId
+        && candidate.models.includes(request.model))
     if (!provider || !provider.models.includes(request.model)) throw new Error(`provider not found for model: ${request.model}`)
     return provider
   }

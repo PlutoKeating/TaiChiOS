@@ -75,11 +75,14 @@
       "description": "An opaque, audience-scoped, single-use credential grant.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["token", "secretId", "audience"],
+      "required": ["token", "organizationId", "principalId", "secretId", "audience", "expiresAt"],
       "properties": {
         "token": { "type": "string", "minLength": 1 },
+        "organizationId": { "type": "string", "minLength": 1 },
+        "principalId": { "type": "string", "minLength": 1 },
         "secretId": { "type": "string", "minLength": 1 },
-        "audience": { "type": "string", "minLength": 1 }
+        "audience": { "type": "string", "minLength": 1 },
+        "expiresAt": { "type": "string", "format": "date-time" }
       }
     },
     "ProviderInvocation": {

@@ -14,10 +14,16 @@ export class IdentityRegistry {
   }
 
   addPrincipal(organizationId: string, principal: Principal) {
+    const organization = this.#organizations.get(organizationId)
     const principals = this.#principals.get(organizationId)
-    if (!principals) throw new Error(`organization not found: ${organizationId}`)
+    if (!organization || !principals) throw new Error(`organization not found: ${organizationId}`)
     if (principals.has(principal.id)) throw new Error(`principal already exists: ${principal.id}`)
-    if (principal.kind !== 'human-user' && !principal.ownerId) throw new Error('non-human principal requires an owner')
+    if (principal.id === organization.ownerId && principal.kind !== 'human-user') {
+      throw new Error('organization owner must be a human user')
+    }
+    if (principal.kind !== 'human-user' && !principals.has(principal.ownerId)) {
+      throw new Error('non-human principal owner not found')
+    }
     principals.set(principal.id, structuredClone(principal))
     return structuredClone(principal)
   }
@@ -25,13 +31,20 @@ export class IdentityRegistry {
   delegate(grant: CapabilityGrant) {
     const organization = this.#organizations.get(grant.organizationId)
     const principals = this.#principals.get(grant.organizationId)
-    if (!organization || !principals?.has(grant.granteeId)) throw new Error('organization or grantee not found')
-    if (grant.grantorId !== organization.ownerId && !this.hasCapability(
-      grant.organizationId,
-      grant.grantorId,
-      'authority.delegate',
-      grant.resource,
-    )) throw new Error('grantor is not authorized to delegate')
+    if (!organization || !principals?.has(grant.grantorId) || !principals.has(grant.granteeId)) {
+      throw new Error('organization, grantor or grantee not found')
+    }
+    if (!grant.capabilities.length) throw new Error('delegation requires at least one capability')
+    if (grant.grantorId !== organization.ownerId) {
+      if (!this.hasCapability(grant.organizationId, grant.grantorId, 'authority.delegate', grant.resource)) {
+        throw new Error('grantor is not authorized to delegate')
+      }
+      for (const capability of grant.capabilities) {
+        if (!this.hasCapability(grant.organizationId, grant.grantorId, capability, grant.resource)) {
+          throw new Error(`grantor cannot delegate capability outside its authority: ${capability}`)
+        }
+      }
+    }
     this.#grants.push(structuredClone(grant))
   }
 

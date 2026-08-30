@@ -27,6 +27,13 @@ describe('control-plane wire contract', () => {
     expect(validate({ ...invocation, mode: 'implicit-root' })).toBe(false)
   })
 
+  it('requires ownership attribution for non-human principals', () => {
+    const validate = ajv.getSchema(`${schema.$id}#/definitions/Principal`)!
+    expect(validate({ id: 'human:owner', kind: 'human-user' })).toBe(true)
+    expect(validate({ id: 'agent:worker', kind: 'working-agent' })).toBe(false)
+    expect(validate({ id: 'agent:worker', kind: 'working-agent', ownerId: 'human:owner' })).toBe(true)
+  })
+
   it('rejects secrets in audit records', () => {
     const validate = ajv.getSchema(`${schema.$id}#/definitions/AuditRecord`)!
     expect(validate({
@@ -39,6 +46,21 @@ describe('control-plane wire contract', () => {
       timestamp: '2026-08-30T00:00:00.000Z',
       credential: 'must-not-be-accepted',
     })).toBe(false)
+  })
+
+  it('requires Secret grants to carry principal, organization, audience and expiry scope', () => {
+    const validate = ajv.getSchema(`${schema.$id}#/definitions/SecretGrant`)!
+    const grant = {
+      token: 'opaque-token',
+      organizationId: 'org:taichios',
+      principalId: 'agent:operator',
+      secretId: 'secret:provider',
+      audience: 'provider:local:agent:operator',
+      expiresAt: '2026-08-30T00:01:00.000Z',
+    }
+    expect(validate(grant)).toBe(true)
+    expect(validate({ ...grant, principalId: undefined })).toBe(false)
+    expect(validate({ ...grant, expiresAt: undefined })).toBe(false)
   })
 
   it('requires committed Change Sets to declare verification and rollback', () => {
@@ -58,5 +80,8 @@ describe('control-plane wire contract', () => {
     }
     expect(validate(changeSet)).toBe(true)
     expect(validate({ ...changeSet, verification: [], rollback: undefined })).toBe(false)
+    expect(validate({ ...changeSet, state: 'failed', failureReason: undefined })).toBe(false)
+    expect(validate({ ...changeSet, state: 'failed', failureReason: 'verification-failed', rollback: undefined })).toBe(true)
+    expect(validate({ ...changeSet, state: 'rolled-back', failureReason: 'not-truthful' })).toBe(false)
   })
 })

@@ -56,12 +56,21 @@ describe('TaiChiOS control plane', () => {
       capabilities: ['provider.invoke'],
       resource: 'provider:local',
     })
+    identities.delegate({
+      organizationId: organization.id,
+      grantorId: 'human:owner',
+      granteeId: 'agent:operator',
+      capabilities: ['secret.use'],
+      resource: 'secret:secret:local',
+    })
 
-    const secrets = new SecretService()
-    secrets.store({ id: 'secret:local', value: 'credential-must-not-leak' })
+    const policy = new PolicyEngine(identities)
+    const secrets = new SecretService(policy)
+    secrets.store({ organizationId: organization.id, id: 'secret:local', value: 'credential-must-not-leak' })
     const audit = new AuditLog()
-    const providers = new ProviderRegistry(new PolicyEngine(identities), secrets, audit)
+    const providers = new ProviderRegistry(policy, secrets, audit)
     providers.register({
+      organizationId: organization.id,
       id: 'local',
       models: ['taichi-test'],
       secretId: 'secret:local',
@@ -135,13 +144,16 @@ describe('TaiChiOS control plane', () => {
     const organization = identities.createOrganization({ id: 'org:taichios', ownerId: 'human:owner' })
     identities.addPrincipal(organization.id, { id: 'human:owner', kind: 'human-user' })
     const audit = new AuditLog()
-    const providers = new ProviderRegistry(new PolicyEngine(identities), new SecretService(), audit)
+    const policy = new PolicyEngine(identities)
+    const providers = new ProviderRegistry(policy, new SecretService(policy), audit)
     providers.register({
+      organizationId: organization.id,
       id: 'provider-a',
       models: ['model-a'],
       adapter: { async invoke() { return { output: 'from-a' } } },
     })
     providers.register({
+      organizationId: organization.id,
       id: 'provider-b',
       models: ['model-b'],
       adapter: { async invoke() { return { output: 'from-b' } } },
@@ -160,5 +172,74 @@ describe('TaiChiOS control plane', () => {
       output: 'from-b',
     })
     expect(audit.list().map(record => record.outcome)).toEqual(['denied', 'allowed'])
+  })
+
+  it('rejects delegation by an unknown owner string or beyond delegated authority', () => {
+    const identities = new IdentityRegistry()
+    const organization = identities.createOrganization({ id: 'org:taichios', ownerId: 'human:owner' })
+    identities.addPrincipal(organization.id, { id: 'human:owner', kind: 'human-user' })
+    identities.addPrincipal(organization.id, { id: 'human:delegate', kind: 'human-user' })
+    identities.addPrincipal(organization.id, {
+      id: 'agent:worker',
+      kind: 'working-agent',
+      ownerId: 'human:owner',
+    })
+
+    expect(() => identities.delegate({
+      organizationId: organization.id,
+      grantorId: 'human:missing',
+      granteeId: 'agent:worker',
+      capabilities: ['provider.invoke'],
+    })).toThrow('grantor')
+
+    identities.delegate({
+      organizationId: organization.id,
+      grantorId: 'human:owner',
+      granteeId: 'human:delegate',
+      capabilities: ['authority.delegate'],
+    })
+    expect(() => identities.delegate({
+      organizationId: organization.id,
+      grantorId: 'human:delegate',
+      granteeId: 'agent:worker',
+      capabilities: ['system.modify'],
+    })).toThrow('outside its authority')
+  })
+
+  it('audits routing and credential failures without crossing organization boundaries', async () => {
+    const identities = new IdentityRegistry()
+    const first = identities.createOrganization({ id: 'org:first', ownerId: 'human:first' })
+    identities.addPrincipal(first.id, { id: 'human:first', kind: 'human-user' })
+    const second = identities.createOrganization({ id: 'org:second', ownerId: 'human:second' })
+    identities.addPrincipal(second.id, { id: 'human:second', kind: 'human-user' })
+    const policy = new PolicyEngine(identities)
+    const secrets = new SecretService(policy)
+    secrets.store({ organizationId: second.id, id: 'secret:first', value: 'credential' })
+    const audit = new AuditLog()
+    const providers = new ProviderRegistry(policy, secrets, audit)
+    providers.register({
+      organizationId: first.id,
+      id: 'first',
+      models: ['shared-model'],
+      secretId: 'secret:first',
+      adapter: { async invoke() { return { output: 'first' } } },
+    })
+
+    await expect(providers.invoke({
+      organizationId: second.id,
+      principalId: 'human:second',
+      model: 'shared-model',
+      input: 'hello',
+      mode: 'yolo',
+    })).rejects.toThrow('provider not found')
+    await expect(providers.invoke({
+      organizationId: first.id,
+      principalId: 'human:first',
+      model: 'shared-model',
+      input: 'hello',
+      mode: 'guarded',
+      confirmed: true,
+    })).rejects.toThrow('credential grant failed')
+    expect(audit.list().map(record => record.reason)).toEqual(['provider-not-found', 'secret-grant-failed'])
   })
 })

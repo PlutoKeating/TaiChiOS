@@ -8,6 +8,7 @@ export const changeStates = [
   'proposed',
   'resolved',
   'authorized',
+  'dry-run',
   'staged',
   'activated',
   'verified',
@@ -23,11 +24,13 @@ export interface Organization {
   ownerId: string
 }
 
-export interface Principal {
+interface PrincipalBase {
   id: string
-  kind: PrincipalKind
-  ownerId?: string
 }
+
+export type Principal =
+  | PrincipalBase & { kind: 'human-user', ownerId?: string }
+  | PrincipalBase & { kind: Exclude<PrincipalKind, 'human-user'>, ownerId: string }
 
 export interface CapabilityGrant {
   organizationId: string
@@ -46,8 +49,21 @@ export interface OwnedResource {
 
 export interface SecretGrant {
   token: string
+  organizationId: string
+  principalId: string
   secretId: string
   audience: string
+  expiresAt: string
+}
+
+export interface SecretGrantRequest {
+  organizationId: string
+  principalId: string
+  secretId: string
+  audience: string
+  mode: OperatingMode
+  confirmed?: boolean
+  ttlSeconds?: number
 }
 
 export interface AuthorizationRequest {
@@ -92,6 +108,7 @@ export interface ProviderAdapter {
 }
 
 export interface ProviderRegistration {
+  organizationId: string
   id: string
   models: string[]
   secretId?: string
@@ -109,13 +126,12 @@ export interface AuditRecord {
   timestamp: string
 }
 
-export interface ChangeSet {
+interface ChangeSetBase {
   id: string
   kind: 'managed-file' | 'profile' | 'plugin' | 'system-update'
   organizationId: string
   actorId: string
   mode: OperatingMode
-  state: ChangeState
   source: {
     identity: string
     sha256: string
@@ -126,9 +142,17 @@ export interface ChangeSet {
     sha256?: string
   }>
   verification: string[]
-  rollback?: {
+}
+
+interface ChangeSetRollback {
+  rollback: {
     kind: 'file-snapshot' | 'profile-link' | 'deployment'
     reference: string
   }
-  failureReason?: string
 }
+
+export type ChangeSet = ChangeSetBase & (
+  | { state: Exclude<ChangeState, 'committed' | 'failed' | 'rollback-failed'>, rollback?: ChangeSetRollback['rollback'], failureReason?: never }
+  | { state: 'committed', verification: [string, ...string[]], rollback: ChangeSetRollback['rollback'], failureReason?: never }
+  | { state: 'failed' | 'rollback-failed', rollback?: ChangeSetRollback['rollback'], failureReason: string }
+)
