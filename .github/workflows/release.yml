@@ -111,7 +111,7 @@ jobs:
           retention-days: 30
           compression-level: 0
       - name: Attest the release payload
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/live/*
       - name: Revalidate the remote tag after verification
