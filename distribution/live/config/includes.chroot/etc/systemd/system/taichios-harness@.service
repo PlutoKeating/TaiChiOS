@@ -4,9 +4,11 @@ After=local-fs.target taichios-mock-provider.service
 Wants=taichios-mock-provider.service
 
 [Service]
-Type=oneshot
+Type=notify
 ExecStart=/usr/local/libexec/taichios-harness-supervisor %i
-RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5s
+WatchdogSec=45s
 
 [Install]
 WantedBy=multi-user.target

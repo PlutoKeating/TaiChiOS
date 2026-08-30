@@ -1,0 +1,48 @@
+#!/bin/sh
+set -eu
+
+ROOT=
+if test "${1:-}" = --root; then
+  ROOT=${2:?missing managed root}
+  shift 2
+fi
+if test -n "$ROOT"; then
+  case "$ROOT" in /*) ;; *) echo 'managed root must be absolute' >&2; exit 2;; esac
+  ROOT=$(CDPATH= cd -- "$ROOT" && pwd -P)
+  test "$ROOT" != / || ROOT=
+elif test "$(id -u)" -ne 0; then
+  echo 'Guardian control requires root' >&2
+  exit 1
+fi
+
+COMMAND=${1:-}
+shift || true
+case "$COMMAND" in
+  restart-harness)
+    ACCOUNT=${1:?missing account}
+    case "$ACCOUNT" in *[!A-Za-z0-9._-]*|'') echo 'invalid account' >&2; exit 2;; esac
+    REQUEST="restart-harness $ACCOUNT"
+    ;;
+  safe-profile)
+    ACCOUNT=${1:?missing account}
+    PROFILE=${2:?missing profile}
+    case "$ACCOUNT:$PROFILE" in *[!A-Za-z0-9._:-]*|:|*:) echo 'invalid account or profile' >&2; exit 2;; esac
+    REQUEST="safe-profile $ACCOUNT $PROFILE"
+    ;;
+  enter-recovery)
+    test "$#" -eq 0 || { echo 'enter-recovery takes no arguments' >&2; exit 2; }
+    REQUEST=enter-recovery
+    ;;
+  *)
+    echo 'usage: taichios-guardianctl [--root ROOT] restart-harness ACCOUNT | safe-profile ACCOUNT PROFILE | enter-recovery' >&2
+    exit 2
+    ;;
+esac
+
+REQUEST_DIR="${ROOT}/run/taichios/guardian/requests"
+install -d -m 0750 "$REQUEST_DIR"
+PENDING=$(mktemp "$REQUEST_DIR/.request.XXXXXX")
+printf '%s\n' "$REQUEST" > "$PENDING"
+chmod 0640 "$PENDING"
+REQUEST_NAME=$(basename "$PENDING")
+mv "$PENDING" "$REQUEST_DIR/${REQUEST_NAME#.}.request"

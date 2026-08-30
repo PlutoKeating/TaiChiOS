@@ -12,3 +12,13 @@ runuser -u "$ACCOUNT" -- env \
   /usr/local/bin/dsh --profile dsh-tui --dump-config > "/run/taichios/harness/$ACCOUNT.config"
 grep -q '@deepseek-harness-tui/dsh-tui' "/run/taichios/harness/$ACCOUNT.config"
 printf '%s\n' ready > "/run/taichios/harness/$ACCOUNT.ready"
+cleanup() {
+  rm -f -- "/run/taichios/harness/$ACCOUNT.heartbeat"
+}
+trap cleanup EXIT HUP INT TERM
+systemd-notify --ready --status="TaiChiOS Harness profile for $ACCOUNT is healthy"
+while :; do
+  touch "/run/taichios/harness/$ACCOUNT.heartbeat"
+  systemd-notify WATCHDOG=1
+  sleep 10
+done

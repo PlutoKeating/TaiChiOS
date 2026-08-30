@@ -1,0 +1,16 @@
+[Unit]
+Description=TaiChiOS independent userspace Guardian
+After=local-fs.target getty@tty1.service
+Wants=getty@tty1.service
+
+[Service]
+Type=notify
+ExecStart=/usr/local/libexec/taichios-guardian
+Restart=on-failure
+RestartSec=5s
+WatchdogSec=45s
+RuntimeDirectory=taichios/guardian
+RuntimeDirectoryMode=0750
+
+[Install]
+WantedBy=multi-user.target

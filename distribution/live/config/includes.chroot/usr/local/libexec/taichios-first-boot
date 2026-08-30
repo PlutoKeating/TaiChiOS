@@ -8,6 +8,7 @@ test "$(readlink /home/creator/.dsh/profiles/dsh-tui/node_modules/@deepseek-harn
 test -f /run/taichios/harness/taichi.ready
 test -f /run/taichios/harness/creator.ready
 systemctl is-active --quiet taichios-mock-provider.service
+systemctl is-active --quiet taichios-guardian.service
 getent hosts "$(hostname)" >/dev/null
 systemctl is-active --quiet getty@tty1.service
 login_attempt=0

@@ -1,0 +1,7 @@
+usr/local/sbin/taichios-change
+usr/local/sbin/taichios-recovery
+usr/local/sbin/taichios-guardianctl
+usr/local/libexec/taichios-guardian
+etc/systemd/system/taichios-guardian.service
+etc/systemd/system/taichios-recovery.target
+etc/systemd/system/taichios-recovery-marker.service

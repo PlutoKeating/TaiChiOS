@@ -16,6 +16,7 @@
     "check:contracts": "vitest run packages/contracts/tests/schema.spec.ts",
     "test:control-plane": "vitest run tests/integration/control-plane.spec.ts packages/secret-service/tests/grants.spec.ts",
     "test:change": "tools/test-change-manager.sh",
+    "test:recovery": "tools/test-change-manager.sh && tools/test-guardian-recovery.sh",
     "install:runtime": "cd distribution/runtime && corepack pnpm install --frozen-lockfile",
     "compat:runtime": "node tools/verify-runtime-compatibility.mjs",
     "compat:cordis": "node tools/verify-vendored-cordis.mjs",

@@ -40,6 +40,8 @@ UEFI/BIOS
 
 Guardian 位于普通插件树之外或拥有独立监督路径，因此 Harness/TUI 崩溃不等于系统不可恢复。其设计将参考成熟的心跳、safe profile 与进程重建模式，但不会直接复制其他项目实现。
 
+当前 Guardian 由独立 `taichios-guardian.service` 承载：systemd watchdog 监督 Guardian 本身，持续 heartbeat 监督每个 Harness supervisor，tty1 失败时单独恢复 getty。root-only 请求目录提供 restart-harness、safe-profile 与 enter-recovery 控制；事件写入独立持久 incident log。Recovery target 不依赖 Guardian、Harness 或普通 Profile，并在宣布 ready 前验证构建时封存的可信文件清单。
+
 ## 控制面与执行面
 
 控制面决定“谁可以请求什么、使用哪个 Provider、安装哪个插件、产生什么 Change Set”。执行面负责“在哪个 Unix 主体、进程或沙箱中实际执行”。二者通过明确协议连接，避免第三方插件因加载到主进程而绕过工具审批。

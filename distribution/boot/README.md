@@ -4,6 +4,8 @@ TaiChiOS 0.1 Live ISO 使用 GRUB PC + GRUB EFI。GRUB 同时绑定本地与 115
 
 安装后的 GRUB 提供默认 Debian/TaiChiOS、`TaiChiOS Previous (known-good)` 和 `TaiChiOS Recovery`。Recovery 进入独立 systemd target，不启动普通 Harness/Profile 树；Previous 在进入多用户目标前回滚最后一次 TaiChiOS 托管变更。安装后的首次启动只有在 tty1 上实际运行 `agetty` 用户登录页后才输出 `TAICHIOS_INSTALLED_LOGIN_READY`。QEMU 门禁分别验证 BIOS 与 UEFI 的 Live Shell、安装后用户登录页、磁盘启动及 Recovery 标记。
 
+Recovery marker 只有在构建时封存的可信文件清单验证通过后才会输出。运行中的系统所有者也可通过 `sudo taichios-guardianctl enter-recovery` 请求 Guardian 隔离到同一 target；这条 root-only 控制通道不依赖 Harness 或 TUI。
+
 控制台权限边界不变：默认 Live 会话仍使用既有的 `taichi` 自动登录，只是将它明确呈现在 tty1；串口仍只提供原有的登录与验收输出，没有新增认证绕过。`Install` 启动项不会重启 tty1，避免与受保护的整盘安装服务竞争。运维人员可在 GRUB 临时编辑 `console=` 顺序，显式覆盖默认控制台；恢复方式是还原该顺序或选择串口/其他虚拟终端。此变更只影响由新源码构建的镜像，不迁移已安装系统的数据。
 
 ## English contract summary

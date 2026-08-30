@@ -21,6 +21,7 @@ const recoveryGrub = read('distribution/live/config/includes.chroot/etc/grub.d/4
 const liveEnableHook = read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot')
 const bootReady = read('distribution/live/config/includes.chroot/usr/local/libexec/taichios-boot-ready')
 const changeTest = resolve(workspace, 'tools/test-change-manager.sh')
+const recoveryTest = resolve(workspace, 'tools/test-guardian-recovery.sh')
 
 assert.equal(lock.schemaVersion, 1)
 assert.equal(lock.distribution, 'Debian GNU/Linux')
@@ -98,6 +99,16 @@ assert.match(firstBoot, /\/home\/creator\/.dsh/)
 const harnessUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-harness@.service')
 assert.match(harnessUnit, /^Wants=taichios-mock-provider\.service$/m)
 assert.doesNotMatch(harnessUnit, /^Requires=taichios-mock-provider\.service$/m)
+assert.match(harnessUnit, /^Type=notify$/m)
+assert.match(harnessUnit, /^Restart=on-failure$/m)
+assert.match(harnessUnit, /^WatchdogSec=45s$/m)
+const guardianUnit = read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-guardian.service')
+assert.match(guardianUnit, /^Type=notify$/m)
+assert.match(guardianUnit, /^WatchdogSec=45s$/m)
+assert.match(read('distribution/live/config/hooks/live/0100-enable-taichios.hook.chroot'), /systemctl enable taichios-guardian\.service/)
+assert.match(installer, /systemctl enable .*taichios-guardian\.service/)
+assert.match(read('distribution/live/config/includes.chroot/etc/systemd/system/taichios-recovery-marker.service'), /ExecStartPre=\/usr\/local\/sbin\/taichios-recovery verify/)
+assert.match(read('distribution/live/config/hooks/live/0120-seal-recovery.hook.chroot'), /trusted-files\.sha256/)
 
 for (const executable of ['distribution/live/auto/config', 'distribution/live/auto/build', 'distribution/live/auto/clean', 'distribution/live/auto/stage-runtime', 'tools/install-live-build.sh', 'tools/test-live-boot.sh', 'tools/test-installed-system.sh']) {
   accessSync(resolve(workspace, executable), constants.X_OK)
@@ -105,6 +116,8 @@ for (const executable of ['distribution/live/auto/config', 'distribution/live/au
 
 accessSync(changeTest, constants.X_OK)
 execFileSync(changeTest, { cwd: workspace, stdio: 'inherit' })
+accessSync(recoveryTest, constants.X_OK)
+execFileSync(recoveryTest, { cwd: workspace, stdio: 'inherit' })
 
 const artifact = resolve(workspace, 'artifacts/live/taichios-0.1-amd64.hybrid.iso')
 const checksum = `${artifact}.sha256`
